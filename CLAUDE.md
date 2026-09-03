@@ -60,7 +60,10 @@ pnpm format                  # aplica Prettier
 - **Server-authoritative**: auth, authz e regra de negócio vivem na API. Cliente é apresentação.
 - **Segredos** nunca no repo — só `.env.example` com placeholders. gitleaks no pre-commit e no CI.
 - **Dinheiro em centavos** (inteiro); `uuid`; `timestamptz`; soft-delete + auditoria em entidades sensíveis.
-- **RBAC**: papéis `aluno` / `staff` / `admin`. MFA TOTP obrigatório para staff/admin.
+- **RBAC**: papéis `aluno` / `staff` / `admin`, aplicado server-side por
+  `SessionGuard` + `RolesGuard`. **MFA TOTP ainda NÃO existe** — as colunas
+  `mfa_secret`/`mfa_enabled` estão no schema, mas nenhum fluxo as usa. É dívida
+  aberta do hardening (ADR 0006); até lá, proteja o backoffice por rede/VPN.
 - **Contrato como fonte de verdade**: OpenAPI 3.1 gera o `api-client`.
 - **Conventional Commits**; PRs pequenos; decisão relevante vira ADR em `docs/adr/`.
 - **Pagamentos** via port `PaymentGateway` (adapter `fake` em dev, `asaas` sandbox depois).

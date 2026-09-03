@@ -50,8 +50,14 @@ pnpm format            # aplica Prettier
 ## Segurança
 
 Auth/authz server-side; segredos fora do repo (só `.env.example` com placeholders);
-`gitleaks` no pre-commit e no CI; dinheiro em centavos; RBAC + MFA para papéis
-sensíveis. Detalhes nos ADRs 0006–0007 e no `CLAUDE.md`.
+`gitleaks` no pre-commit e no CI; dinheiro em centavos; RBAC server-side com
+menor privilégio. Sessão em cookie httpOnly assinado com store no Redis
+(revogação imediata no logout), rate limiting global e por rota de auth, CORS
+por allow-list e login sem enumeração.
+
+**Dívida de hardening aberta** (ADR 0006): MFA TOTP, login social Google OIDC e
+reset de senha self-service ainda não foram implementados. Enquanto o MFA não
+existir, restrinja o backoffice por IP/VPN. Detalhes nos ADRs 0006–0007.
 
 ## Decisões (ADRs)
 

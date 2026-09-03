@@ -27,3 +27,28 @@ social; sessão web em **cookie httpOnly + Secure + SameSite** com store no Redi
 Sem dependência externa de identidade nem custo por usuário; dados no BR.
 Responsabilidade de implementar reset seguro (sem enumeração), rate limiting e
 lockout — previstos no M1.
+
+## Estado da implementação (2026-09-03)
+
+Entregue: senha Argon2id, sessão server-side no Redis (cookie httpOnly +
+assinado + SameSite, `Secure` em produção), revogação no logout, RBAC por
+`SessionGuard`/`RolesGuard`, rate limiting global (120/min) e por rota de auth
+(login 10/min, registro 5/min, lead 5/min), CORS por allow-list e login com
+mensagem uniforme (sem enumeração).
+
+**Pendente** — esta decisão ainda não está cumprida por inteiro:
+
+- **MFA TOTP**: só as colunas `mfa_secret`/`mfa_enabled` existem; nenhum fluxo
+  de enrolamento ou verificação. Até implementar, o acesso de `staff`/`admin`
+  depende só de senha — restrinja `admin.*` por IP/VPN.
+- **Google OIDC**: as variáveis `GOOGLE_*` são lidas pela config, mas não há
+  rota de callback.
+- **Reset de senha self-service**: existe apenas reset iniciado por admin
+  autenticado (`POST /v1/admin/users/:id/reset-password`). Não há fluxo público
+  de "esqueci minha senha" — quando entrar, precisa nascer com rate limit e
+  resposta genérica.
+- **Lockout progressivo por conta**: o rate limit hoje é por IP, não por conta.
+- **Enumeração no registro**: `POST /v1/auth/register` devolve `409 E-mail já
+cadastrado`, o que permite descobrir se um e-mail tem conta. Mitigado pelo
+  limite de 5/min por IP; fechar de vez exige verificação de e-mail, para não
+  trocar o vazamento por um cadastro que falha em silêncio.
