@@ -9,11 +9,12 @@ export function Footer() {
         <div className="ft-grid">
           <div>
             <Link href="/#top" className="brand" aria-label="G3 Educação | Saúde · início">
-              {/* Versão negativa do lockup (manual §01), para o fundo escuro do rodapé. */}
+              {/* Versão Principal do lockup — ouro e branco sobre azul-marinho,
+                  uso preferencial do manual §01 — para o fundo escuro do rodapé. */}
               <img
-                src="/g3-logo-white.png"
+                src="/g3-badge.png"
                 alt="G3 Educação | Saúde"
-                style={{ width: 132, height: 'auto', opacity: 0.92 }}
+                style={{ width: 132, height: 'auto' }}
               />
             </Link>
             <p className="ft-about">

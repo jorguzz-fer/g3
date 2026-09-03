@@ -20,13 +20,9 @@ export function SidebarLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen">
       <aside className="flex w-56 flex-col bg-navy-900 px-4 py-6 text-[#EAECF0]">
         <div className="mb-8 px-2">
-          {/* Versão negativa do lockup (manual §01), sobre o fundo escuro do admin. */}
-          <img
-            src="/g3-logo-white.png"
-            alt="G3 Educação | Saúde"
-            className="block h-auto w-[124px]"
-            style={{ opacity: 0.95 }}
-          />
+          {/* Versão Principal do lockup — ouro e branco sobre azul-marinho,
+              uso preferencial do manual §01 — sobre o fundo escuro do admin. */}
+          <img src="/g3-badge.png" alt="G3 Educação | Saúde" className="block h-auto w-[124px]" />
         </div>
         <nav className="flex flex-1 flex-col gap-1">
           {nav.map((item) => (

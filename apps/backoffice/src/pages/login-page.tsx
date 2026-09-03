@@ -34,7 +34,7 @@ export function LoginPage() {
       />
 
       <div className="relative mx-auto w-full max-w-sm">
-        <img src="/g3-logo-white.png" alt="G3 Educação | Saúde" className="mb-6 h-auto w-[132px]" />
+        <img src="/g3-badge.png" alt="G3 Educação | Saúde" className="mb-6 h-auto w-[132px]" />
         <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/90">
           <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
           Backoffice

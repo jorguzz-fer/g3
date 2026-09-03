@@ -37,11 +37,14 @@ Opção 2. `packages/design-tokens` é a fonte única:
   Sans em texto e rótulos (ecoa a assinatura espaçada). Rótulos em caixa-alta com
   0,2–0,3 em de espaçamento. O site serve as fontes pelo `next/font`; aluno e
   backoffice, por `<link>` do Google Fonts.
-- **Logotipo.** Lockup completo (`g3-logo.png`) e versão negativa
-  (`g3-logo-white.png`) onde há largura para os 120 px mínimos do manual;
-  símbolo isolado (`g3-mark.png`) nos espaços reduzidos que o manual prevê —
-  nav do site, header mobile do aluno, favicon e avatares. Os elementos nunca são
-  separados, reproporcionados ou recompostos com outra fonte.
+- **Logotipo.** Lockup Monocromática azul (`g3-logo.png`, manual §01) em fundos
+  claros; versão Principal — ouro e branco sobre azul-marinho, uso preferencial
+  (`g3-badge.png`, extraída em resolução nativa do manual, com fundo
+  transparente) onde há largura para os 120 px mínimos do manual e o fundo é
+  escuro; símbolo isolado, claro (`g3-mark.png`) ou Principal (`g3-badge-mark.png`),
+  nos espaços reduzidos que o manual prevê — nav do site, header mobile do
+  aluno, favicon e avatares. Os elementos nunca são separados, reproporcionados
+  ou recompostos com outra fonte.
 - **Verdes semânticos preservados.** `success`, a variação positiva do dashboard
   e o estágio "ganho" do CRM continuam verdes: são significado, não marca.
 

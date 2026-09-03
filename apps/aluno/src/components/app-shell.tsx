@@ -103,11 +103,14 @@ const navItems = [
   { to: '/perfil', label: 'Perfil', icon: ProfileIcon },
 ];
 
-/** Lockup oficial G3. `inverted` usa a versão negativa (sobre fundo escuro). */
+/**
+ * Lockup oficial G3. `inverted` usa a versão Principal (ouro e branco sobre
+ * azul-marinho, manual §01 — uso preferencial), para o fundo escuro.
+ */
 function Logo({ className, inverted }: { className?: string; inverted?: boolean }) {
   return (
     <img
-      src={inverted ? '/g3-logo-white.png' : '/g3-logo.png'}
+      src={inverted ? '/g3-badge.png' : '/g3-logo.png'}
       alt="G3 Educação | Saúde"
       className={className}
     />
@@ -116,7 +119,7 @@ function Logo({ className, inverted }: { className?: string; inverted?: boolean 
 
 /** Símbolo isolado — para o header mobile, onde a assinatura ficaria ilegível. */
 function Mark({ className }: { className?: string }) {
-  return <img src="/g3-mark-white.png" alt="G3 Educação | Saúde" className={className} />;
+  return <img src="/g3-badge-mark.png" alt="G3 Educação | Saúde" className={className} />;
 }
 
 /**

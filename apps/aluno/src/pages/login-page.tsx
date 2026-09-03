@@ -103,7 +103,7 @@ function BrandPanel() {
       />
 
       <div className="relative">
-        <img src="/g3-logo-white.png" alt="G3 Educação | Saúde" className="h-auto w-[132px]" />
+        <img src="/g3-badge.png" alt="G3 Educação | Saúde" className="h-auto w-[132px]" />
       </div>
 
       <div className="relative max-w-md">
