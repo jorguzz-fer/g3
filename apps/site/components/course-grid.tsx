@@ -1,0 +1,40 @@
+import Link from 'next/link';
+import { Button, CourseCard } from '@g3/ui';
+import type { CourseSummary } from '@/lib/api';
+import { OfferLabel } from '@/components/site/offer-label';
+
+export function CourseGrid({ courses }: { courses: CourseSummary[] }) {
+  if (courses.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed border-border bg-white/60 p-8 text-center text-muted">
+        Nenhum curso disponível no momento.
+      </p>
+    );
+  }
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {courses.map((c) => (
+        <CourseCard
+          key={c.id}
+          title={c.title}
+          priceLabel={
+            c.comingSoon ? (
+              'Em breve'
+            ) : (
+              <OfferLabel priceCents={c.priceCents} maxInstallments={c.maxInstallments} />
+            )
+          }
+          specialty={c.specialty?.name}
+          coverUrl={c.coverUrl ?? undefined}
+          cta={
+            c.comingSoon ? undefined : (
+              <Link href={`/cursos/${c.slug}`}>
+                <Button size="sm">Ver curso</Button>
+              </Link>
+            )
+          }
+        />
+      ))}
+    </div>
+  );
+}

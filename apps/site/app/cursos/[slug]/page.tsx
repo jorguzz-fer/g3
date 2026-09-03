@@ -1,0 +1,499 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import type { ReactNode } from 'react';
+import { formatBRL } from '@g3/shared';
+import { buttonClasses } from '@g3/ui';
+import { getCourse, getCourses, type CourseDetail, type CourseSummary } from '@/lib/api';
+import { LeadFormTrigger } from '@/components/site/lead-form';
+import { OfferCard } from '@/components/site/offer-card';
+import { Credenciamento } from '@/components/site/credenciamento';
+import { installmentsFor } from '@/lib/pricing';
+
+export const dynamic = 'force-dynamic';
+
+export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const course = await getCourse(slug);
+  if (!course) notFound();
+
+  let related = (await getCourses({ specialty: course.specialty?.slug ?? undefined })).filter(
+    (c) => c.slug !== course.slug,
+  );
+  if (related.length === 0) {
+    related = (await getCourses()).filter((c) => c.slug !== course.slug);
+  }
+  related = related.slice(0, 3);
+
+  const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
+  const objectives = course.learningObjectives ?? [];
+
+  return (
+    <article className="bg-paper">
+      <Hero course={course} />
+      <Conditions workloadHours={course.workloadHours} maxInstallments={course.maxInstallments} />
+      <section className="mx-auto max-w-[1140px] px-6">
+        <Credenciamento className="rounded-2xl border border-border bg-white p-5" />
+      </section>
+      {objectives.length > 0 ? <Objectives items={objectives} /> : null}
+      <Curriculum course={course} totalLessons={totalLessons} />
+      <GuideBanner />
+      {course.instructor ? <Faculty instructor={course.instructor} /> : null}
+      <Benefits />
+      <InvestmentBand course={course} />
+      {related.length > 0 ? <Related courses={related} /> : null}
+      <Faq items={course.faq ?? []} />
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function Hero({ course }: { course: CourseDetail }) {
+  return (
+    <header className="relative overflow-hidden bg-navy-900 text-[#EAECF0]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-32 -top-24 h-96 w-96 rounded-full bg-navy-700/30 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-32 left-1/3 h-96 w-96 rounded-full bg-gold-500/10 blur-3xl"
+      />
+      <div className="relative mx-auto grid max-w-[1140px] items-center gap-10 px-6 py-16 lg:grid-cols-[1.15fr_1fr]">
+        <div>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {course.specialty ? <Pill>{course.specialty.name}</Pill> : null}
+            {course.workloadHours ? <Pill>{course.workloadHours}h de conteúdo</Pill> : null}
+            <Pill gold>Curso online</Pill>
+          </div>
+          <h1 className="max-w-2xl font-serif text-4xl font-semibold leading-tight md:text-5xl">
+            {course.title}
+          </h1>
+          {course.subtitle ? (
+            <p className="mt-4 max-w-xl text-lg text-[#C6CAD3]">{course.subtitle}</p>
+          ) : null}
+
+          {course.coverUrl ? (
+            <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-2xl lg:hidden">
+              <img
+                src={course.coverUrl}
+                alt={course.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : null}
+          {course.instructor ? (
+            <p className="mt-6 text-sm text-[#9DA3B0]">
+              Coordenação: <span className="text-[#EAECF0]">{course.instructor.name}</span>
+            </p>
+          ) : null}
+        </div>
+
+        <div className="lg:pl-4">
+          <OfferCard course={course} comingSoon={course.comingSoon} />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function Pill({ children, gold }: { children: ReactNode; gold?: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${
+        gold
+          ? 'border-gold-400/30 bg-gold-500/15 text-gold-400'
+          : 'border-white/15 bg-white/10 text-white/90'
+      }`}
+    >
+      {children}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function Conditions({
+  workloadHours,
+  maxInstallments,
+}: {
+  workloadHours: number | null;
+  maxInstallments: number;
+}) {
+  const items = [
+    {
+      title: 'Pagamento facilitado',
+      desc: `Parcele em até ${installmentsFor(maxInstallments)}x ou pague à vista com condição especial.`,
+    },
+    {
+      title: 'Aprendizado 100% online',
+      desc: 'Estude no seu ritmo, de qualquer lugar, com conteúdo sempre disponível.',
+    },
+    {
+      title: 'Certificado ao concluir',
+      desc: workloadHours
+        ? `Certificado de ${workloadHours}h emitido na área do aluno ao finalizar.`
+        : 'Emita seu certificado ao concluir o curso, direto na área do aluno.',
+    },
+  ];
+  return (
+    <section className="mx-auto max-w-[1140px] px-6 py-12">
+      <div className="grid gap-4 rounded-2xl border border-border bg-white p-6 sm:grid-cols-3">
+        {items.map((it) => (
+          <div key={it.title} className="flex gap-3">
+            <CheckIcon />
+            <div>
+              <p className="font-semibold text-ink">{it.title}</p>
+              <p className="mt-0.5 text-sm text-muted">{it.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function Objectives({ items }: { items: string[] }) {
+  return (
+    <section className="mx-auto max-w-[1140px] px-6 py-8">
+      <h2 className="mb-6 font-serif text-3xl font-semibold text-navy-800">
+        O que você vai aprender
+      </h2>
+      <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+        {items.map((it) => (
+          <div key={it} className="flex items-start gap-3">
+            <CheckIcon />
+            <p className="text-[15px] leading-relaxed text-ink/90">{it}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function Curriculum({ course, totalLessons }: { course: CourseDetail; totalLessons: number }) {
+  return (
+    <section id="disciplinas" className="mx-auto max-w-[1140px] px-6 py-4">
+      <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+        <div>
+          <h2 className="font-serif text-3xl font-semibold text-navy-800">Disciplinas</h2>
+          <p className="mb-6 mt-1 text-sm text-muted">
+            {course.modules.length} módulo(s) · {totalLessons} aula(s)
+          </p>
+          {course.description ? (
+            <p className="mb-6 max-w-2xl text-[15px] leading-relaxed text-ink/80">
+              {course.description}
+            </p>
+          ) : null}
+
+          <div className="flex flex-col gap-3">
+            {course.modules.map((m, i) => (
+              <details
+                key={m.id}
+                className="group rounded-xl border border-border bg-white"
+                open={i === 0}
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">
+                  <span className="flex items-center gap-3">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-navy-50 text-sm font-bold text-navy-700">
+                      {i + 1}
+                    </span>
+                    <span className="font-semibold text-ink">{m.title}</span>
+                  </span>
+                  <svg
+                    className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </summary>
+                <ul className="flex flex-col divide-y divide-border border-t border-border">
+                  {m.lessons.map((l) => (
+                    <li key={l.id} className="flex items-center justify-between gap-3 px-5 py-3">
+                      <span className="flex items-center gap-2 text-sm text-ink">
+                        {l.title}
+                        {l.isFree ? (
+                          <span className="rounded-full bg-gold-50 px-2 py-0.5 text-[11px] font-medium text-gold-600">
+                            Prévia
+                          </span>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ))}
+          </div>
+        </div>
+
+        {/* Card de oferta fixo */}
+        <aside className="lg:pt-14">
+          <div className="sticky top-6">
+            <OfferCard course={course} comingSoon={course.comingSoon} />
+            {!course.comingSoon ? (
+              <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted">
+                <LockIcon />
+                Pagamento seguro · Pix, cartão ou boleto
+              </div>
+            ) : null}
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function GuideBanner() {
+  return (
+    <section className="mx-auto max-w-[1140px] px-6 py-8">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-2xl bg-navy-800 p-6 text-[#EAECF0] sm:flex-row sm:items-center">
+        <div>
+          <h3 className="font-serif text-xl font-semibold">Guia do curso</h3>
+          <p className="mt-1 text-sm text-[#C6CAD3]">
+            Fale com nossa equipe e receba o guia completo com toda a grade e as condições.
+          </p>
+        </div>
+        <LeadFormTrigger source="curso-guia" className={buttonClasses('gold')}>
+          Quero o guia
+        </LeadFormTrigger>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function Faculty({ instructor }: { instructor: NonNullable<CourseDetail['instructor']> }) {
+  const { name, bio, avatarUrl } = instructor;
+  const initials = name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase();
+  return (
+    <section className="mx-auto max-w-[1140px] px-6 py-8">
+      <h2 className="mb-5 font-serif text-3xl font-semibold text-navy-800">
+        Conheça a coordenação
+      </h2>
+      <div className="flex items-start gap-4 rounded-2xl border border-border bg-white p-5">
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={name}
+            className="h-16 w-16 shrink-0 rounded-full object-cover object-top"
+          />
+        ) : (
+          <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-navy-900 font-serif text-xl font-semibold text-gold-400">
+            {initials}
+          </span>
+        )}
+        <div>
+          <p className="font-semibold text-ink">{name}</p>
+          <p className="mt-0.5 text-sm leading-relaxed text-muted">
+            {bio ?? 'Coordenação acadêmica, especialista com atuação clínica e docente.'}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function Benefits() {
+  const items = [
+    { title: 'Estudos 100% online', desc: 'Aprenda de onde estiver, sem deslocamento.' },
+    { title: 'Certificação G3', desc: 'Certificado ao concluir, com carga horária.' },
+    { title: 'Conteúdo multiplataforma', desc: 'Acesse pelo computador, tablet ou celular.' },
+    { title: 'No ritmo da sua rotina', desc: 'Retome de onde parou, quando quiser.' },
+  ];
+  return (
+    <section className="mx-auto max-w-[1140px] px-6 py-10">
+      <h2 className="mb-6 font-serif text-3xl font-semibold text-navy-800">
+        Benefícios de estudar na G3
+      </h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((it) => (
+          <div key={it.title} className="rounded-2xl border border-border bg-white p-5">
+            <div className="mb-3 grid h-10 w-10 place-items-center rounded-xl bg-navy-50 text-navy-700">
+              <CheckIcon />
+            </div>
+            <p className="font-semibold text-ink">{it.title}</p>
+            <p className="mt-1 text-sm text-muted">{it.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function InvestmentBand({ course }: { course: CourseDetail }) {
+  return (
+    <section className="mx-auto max-w-[1140px] px-6 py-10">
+      <div className="grid items-center gap-8 rounded-3xl bg-navy-900 p-8 text-[#EAECF0] sm:p-10 lg:grid-cols-[1fr_minmax(0,380px)]">
+        <div>
+          <h2 className="font-serif text-3xl font-semibold text-gold-400">Garanta sua vaga</h2>
+          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-[#C6CAD3]">
+            Matrícula aberta com condição especial por tempo limitado. Comece hoje, estude no seu
+            ritmo e emita seu certificado
+            {course.workloadHours ? ` de ${course.workloadHours}h` : ''} ao concluir.
+          </p>
+        </div>
+        <OfferCard course={course} comingSoon={course.comingSoon} />
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function Related({ courses }: { courses: CourseSummary[] }) {
+  return (
+    <section className="mx-auto max-w-[1140px] px-6 py-10">
+      <h2 className="mb-6 font-serif text-3xl font-semibold text-navy-800">Cursos relacionados</h2>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {courses.map((c) => (
+          <Link
+            key={c.id}
+            href={`/cursos/${c.slug}`}
+            className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-white transition-shadow hover:shadow-lg"
+          >
+            <div className="aspect-[16/9] overflow-hidden bg-navy-900">
+              {c.coverUrl ? (
+                <img
+                  src={c.coverUrl}
+                  alt={c.title}
+                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-gradient-to-br from-navy-800 to-navy-900">
+                  <span className="font-serif text-gold-400/70">G3</span>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-1 flex-col p-4">
+              {c.specialty ? (
+                <span className="text-[11px] font-medium uppercase tracking-wide text-gold-600">
+                  {c.specialty.name}
+                </span>
+              ) : null}
+              <p className="mt-1 font-semibold leading-snug text-ink">{c.title}</p>
+              <p className="mt-auto pt-3 font-serif text-lg font-semibold text-navy-800">
+                {formatBRL(c.priceCents)}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+const DEFAULT_FAQ = [
+  {
+    q: 'Requisitos e documentação para matrícula',
+    a: 'A matrícula é feita online. Após a compra, você cria seu acesso e conclui o cadastro na área do aluno. Não exigimos documentação prévia para começar a estudar.',
+  },
+  {
+    q: 'Disponibilização do acesso',
+    a: 'O acesso é liberado imediatamente após a confirmação do pagamento. Com Pix e cartão a liberação é na hora; com boleto, após a compensação.',
+  },
+  {
+    q: 'Metodologia e funcionamento das aulas',
+    a: 'As aulas são gravadas e ficam disponíveis 100% online. Você estuda no seu ritmo, acompanha o progresso por aula e retoma de onde parou em qualquer dispositivo.',
+  },
+  {
+    q: 'Avaliações',
+    a: 'O acompanhamento é por conclusão das aulas do curso. Ao finalizar todo o conteúdo, o certificado fica disponível.',
+  },
+  {
+    q: 'Certificado',
+    a: 'Ao concluir 100% do curso, o certificado é emitido automaticamente e fica disponível para download na área do aluno.',
+  },
+  {
+    q: 'Política de cancelamento',
+    a: 'Você pode solicitar o cancelamento com reembolso em até 7 dias após a compra, conforme o Código de Defesa do Consumidor.',
+  },
+];
+
+function Faq({ items }: { items: CourseDetail['faq'] }) {
+  const list = items.length > 0 ? items.map((f) => ({ q: f.question, a: f.answer })) : DEFAULT_FAQ;
+  return (
+    <section className="mx-auto max-w-[1140px] px-6 py-12">
+      <h2 className="mb-6 font-serif text-3xl font-semibold text-navy-800">Perguntas frequentes</h2>
+      <div className="flex flex-col gap-3">
+        {list.map((it) => (
+          <details key={it.q} className="group rounded-xl border border-border bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-semibold text-ink">
+              {it.q}
+              <svg
+                className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </summary>
+            <p className="border-t border-border px-5 py-4 text-sm leading-relaxed text-muted">
+              {it.a}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function CheckIcon({ small }: { small?: boolean }) {
+  return (
+    <svg
+      className={small ? 'mt-0.5 h-4 w-4 shrink-0 text-navy-700' : 'h-5 w-5 shrink-0 text-navy-700'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="4" y="10" width="16" height="10" rx="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}

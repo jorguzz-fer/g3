@@ -1,0 +1,48 @@
+import { describe, expect, it } from 'vitest';
+import { buildOpenApiDocument } from '../src/openapi/document';
+
+describe('buildOpenApiDocument', () => {
+  const doc = buildOpenApiDocument();
+
+  it('gera um documento OpenAPI 3.1 válido', () => {
+    expect(doc.openapi).toBe('3.1.0');
+    expect(doc.info.title).toBe('G3 API');
+  });
+
+  it('expõe as rotas de auth e catálogo', () => {
+    expect(doc.paths?.['/v1/auth/login']).toBeDefined();
+    expect(doc.paths?.['/v1/catalog/courses']).toBeDefined();
+    expect(doc.paths?.['/v1/catalog/courses/{slug}']).toBeDefined();
+  });
+
+  it('expõe as rotas de checkout', () => {
+    expect(doc.paths?.['/v1/checkout']).toBeDefined();
+    expect(doc.paths?.['/v1/orders/{id}']).toBeDefined();
+    expect(doc.paths?.['/v1/webhooks/payments']).toBeDefined();
+  });
+
+  it('expõe as rotas de perfil e certificado', () => {
+    expect(doc.paths?.['/v1/me/profile']).toBeDefined();
+    expect(doc.paths?.['/v1/me/password']).toBeDefined();
+    expect(doc.paths?.['/v1/me/courses/{slug}/certificate']).toBeDefined();
+  });
+
+  it('expõe as rotas de CRUD do backoffice (cursos/aulas/usuários)', () => {
+    expect(doc.paths?.['/v1/admin/courses/{id}']).toBeDefined();
+    expect(doc.paths?.['/v1/admin/modules/{id}']).toBeDefined();
+    expect(doc.paths?.['/v1/admin/lessons/{id}']).toBeDefined();
+    expect(doc.paths?.['/v1/admin/instructors']).toBeDefined();
+    expect(doc.paths?.['/v1/admin/users']).toBeDefined();
+    expect(doc.paths?.['/v1/admin/users/{id}/password']).toBeDefined();
+    expect(doc.paths?.['/v1/admin/users/{id}/enrollments']).toBeDefined();
+  });
+
+  it('registra os schemas de resposta', () => {
+    const schemas = doc.components?.schemas ?? {};
+    expect(schemas['CourseSummary']).toBeDefined();
+    expect(schemas['CourseDetail']).toBeDefined();
+    expect(schemas['PublicUser']).toBeDefined();
+    expect(schemas['Order']).toBeDefined();
+    expect(schemas['CreateCheckoutInput']).toBeDefined();
+  });
+});

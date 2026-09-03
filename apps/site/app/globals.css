@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* `--font-serif`/`--font-sans` vêm do next/font (layout.tsx); a pilha nomeada
+     fica como fallback para quando as fontes ainda não carregaram. */
+  --serif: var(--font-serif), 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans:
+    var(--font-sans), 'Josefin Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+body {
+  background: #f6f5f1;
+  color: #141a26;
+  font-family: var(--sans);
+}
+
+h1,
+h2,
+h3,
+.font-serif {
+  font-family: var(--serif);
+}
+
+/* No modo escuro o lockup (azul-marinho) some sobre o fundo escuro: inverte
+   para branco, igual ao rodapé. Só afeta o logo do header. */
+:root[data-theme='dark'] .nav .brand img {
+  filter: brightness(0) invert(1);
+}

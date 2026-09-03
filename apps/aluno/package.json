@@ -1,0 +1,33 @@
+{
+  "name": "@g3/aluno",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3001",
+    "build": "vite build",
+    "preview": "vite preview --port 3001",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"(aluno) coberto por build/typecheck\" && exit 0"
+  },
+  "dependencies": {
+    "@g3/api-client": "workspace:*",
+    "@g3/shared": "workspace:*",
+    "@g3/ui": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@g3/design-tokens": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vite-plugin-pwa": "^0.21.1"
+  }
+}

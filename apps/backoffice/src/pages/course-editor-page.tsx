@@ -1,0 +1,960 @@
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Button, Field } from '@g3/ui';
+import {
+  api,
+  type AdminCourseDetail,
+  type AiCourseDraft,
+  type Instructor,
+  type Specialty,
+} from '../api';
+
+type Level = AdminCourseDetail['level'];
+type Status = AdminCourseDetail['status'];
+type FaqItem = AdminCourseDetail['faq'][number];
+
+const LEVELS: { value: Level; label: string }[] = [
+  { value: 'iniciante', label: 'Iniciante' },
+  { value: 'intermediario', label: 'Intermediário' },
+  { value: 'avancado', label: 'Avançado' },
+];
+
+function realToCents(v: string): number {
+  const n = Number(v.replace(/\./g, '').replace(',', '.'));
+  return Number.isFinite(n) ? Math.round(n * 100) : 0;
+}
+function centsToReal(c: number): string {
+  return (c / 100).toFixed(2).replace('.', ',');
+}
+
+/** Editor de curso: cria (sem id) ou edita (com id) metadados + módulos + aulas. */
+export function CourseEditorPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isNew = !id;
+
+  const [course, setCourse] = useState<AdminCourseDetail | null>(null);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+
+  // Form de metadados (controlado; para novo curso começa vazio).
+  const [form, setForm] = useState({
+    title: '',
+    subtitle: '',
+    description: '',
+    price: '0,00',
+    level: 'iniciante' as Level,
+    status: 'draft' as Status,
+    coverUrl: '',
+    specialtyId: '',
+    instructorId: '',
+    workloadHours: '',
+    learningObjectives: [] as string[],
+    faq: [] as FaqItem[],
+  });
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+
+  useEffect(() => {
+    api.GET('/v1/catalog/specialties').then(({ data }) => setSpecialties(data ?? []));
+    api.GET('/v1/admin/instructors').then(({ data }) => setInstructors(data ?? []));
+    api.GET('/v1/admin/ai/status').then(({ data }) => setAiEnabled(Boolean(data?.enabled)));
+  }, []);
+
+  useEffect(() => {
+    if (isNew) return;
+    api
+      .GET('/v1/admin/courses/{id}', { params: { path: { id: id! } } })
+      .then(({ data }) => {
+        if (!data) return;
+        setCourse(data);
+        setForm({
+          title: data.title,
+          subtitle: data.subtitle ?? '',
+          description: data.description ?? '',
+          price: centsToReal(data.priceCents),
+          level: data.level,
+          status: data.status,
+          coverUrl: data.coverUrl ?? '',
+          specialtyId: data.specialtyId ?? '',
+          instructorId: data.instructorId ?? '',
+          workloadHours: data.workloadHours != null ? String(data.workloadHours) : '',
+          learningObjectives: data.learningObjectives ?? [],
+          faq: data.faq ?? [],
+        });
+      })
+      .catch(() => setCourse(null));
+  }, [id, isNew]);
+
+  function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function saveMeta(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setMsg(null);
+    const workload = form.workloadHours.trim();
+    const body = {
+      title: form.title,
+      subtitle: form.subtitle || null,
+      description: form.description || null,
+      priceCents: realToCents(form.price),
+      level: form.level,
+      status: form.status,
+      coverUrl: form.coverUrl || null,
+      specialtyId: form.specialtyId || null,
+      instructorId: form.instructorId || null,
+      workloadHours: workload ? Math.max(0, Math.round(Number(workload) || 0)) : null,
+      learningObjectives: form.learningObjectives.map((s) => s.trim()).filter(Boolean),
+      faq: form.faq
+        .map((f) => ({ question: f.question.trim(), answer: f.answer.trim() }))
+        .filter((f) => f.question && f.answer),
+    };
+    try {
+      if (isNew) {
+        const { data, error } = await api.POST('/v1/admin/courses', { body });
+        if (error || !data) throw new Error();
+        navigate(`/cursos/${data.id}`);
+        return;
+      }
+      const res = await api.PATCH('/v1/admin/courses/{id}', {
+        params: { path: { id: id! } },
+        body,
+      });
+      if (res.error) throw new Error();
+      setMsg('Alterações salvas.');
+      const refreshed = await api.GET('/v1/admin/courses/{id}', { params: { path: { id: id! } } });
+      if (refreshed.data) setCourse(refreshed.data);
+    } catch {
+      setMsg('Não foi possível salvar.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function addInstructor() {
+    const name = window.prompt('Nome do instrutor:');
+    if (!name?.trim()) return;
+    const { data } = await api.POST('/v1/admin/instructors', { body: { name: name.trim() } });
+    if (data) {
+      setInstructors((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+      set('instructorId', data.id);
+    }
+  }
+
+  /** Aplica o rascunho da IA aos campos de metadados (o admin revisa e salva). */
+  function applyDraftMeta(draft: AiCourseDraft) {
+    setForm((f) => ({
+      ...f,
+      subtitle: draft.subtitle || f.subtitle,
+      description: draft.description || f.description,
+      workloadHours: draft.workloadHours ? String(draft.workloadHours) : f.workloadHours,
+      learningObjectives: draft.learningObjectives ?? [],
+      faq: draft.faq ?? [],
+    }));
+    setMsg('Rascunho aplicado — revise e salve.');
+  }
+
+  /** Cria os módulos/aulas sugeridos (só em curso já existente). */
+  async function applyDraftModules(modules: AiCourseDraft['modules']) {
+    if (isNew) return;
+    let detail: AdminCourseDetail | null = course;
+    for (const m of modules) {
+      const created = await api.POST('/v1/admin/courses/{id}/modules', {
+        params: { path: { id: id! } },
+        body: { title: m.title },
+      });
+      if (!created.data) continue;
+      detail = created.data;
+      const newest = [...detail.modules].sort((a, b) => b.position - a.position)[0];
+      if (!newest) continue;
+      for (const l of m.lessons) {
+        const withLesson = await api.POST('/v1/admin/modules/{id}/lessons', {
+          params: { path: { id: newest.id } },
+          body: {
+            title: l.title,
+            durationSeconds: Math.max(0, Math.round(l.durationMinutes || 0)) * 60,
+            isFree: false,
+          },
+        });
+        if (withLesson.data) detail = withLesson.data;
+      }
+    }
+    if (detail) setCourse(detail);
+  }
+
+  return (
+    <div className="max-w-3xl">
+      <Link to="/cursos" className="text-sm font-semibold text-navy-700 hover:underline">
+        ← Voltar aos cursos
+      </Link>
+      <div className="mb-6 mt-2 flex items-center justify-between gap-3">
+        <h1 className="font-serif text-3xl font-semibold text-navy-800">
+          {isNew ? 'Novo curso' : 'Editar curso'}
+        </h1>
+        {aiEnabled ? (
+          <Button type="button" variant="soft" onClick={() => setAiOpen(true)}>
+            ✨ Gerar com IA
+          </Button>
+        ) : null}
+      </div>
+
+      {aiOpen ? (
+        <AiDraftModal
+          title={form.title}
+          canApplyModules={!isNew}
+          onApplyMeta={applyDraftMeta}
+          onApplyModules={applyDraftModules}
+          onClose={() => setAiOpen(false)}
+        />
+      ) : null}
+
+      <form
+        onSubmit={saveMeta}
+        className="flex flex-col gap-4 rounded-lg border border-border bg-white p-6"
+      >
+        <Field
+          label="Título"
+          value={form.title}
+          onChange={(e) => set('title', e.target.value)}
+          required
+        />
+        <Field
+          label="Subtítulo"
+          value={form.subtitle}
+          onChange={(e) => set('subtitle', e.target.value)}
+        />
+        <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+          Descrição
+          <textarea
+            value={form.description}
+            onChange={(e) => set('description', e.target.value)}
+            rows={4}
+            className="rounded-[10px] border-[1.5px] border-border px-3.5 py-3 text-[15px]"
+          />
+        </label>
+
+        <div className="grid grid-cols-3 gap-4">
+          <Field
+            label="Preço (R$)"
+            inputMode="decimal"
+            value={form.price}
+            onChange={(e) => set('price', e.target.value)}
+          />
+          <Field
+            label="Carga horária (h)"
+            inputMode="numeric"
+            value={form.workloadHours}
+            onChange={(e) => set('workloadHours', e.target.value)}
+            placeholder="ex.: 40"
+          />
+          <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+            Nível
+            <select
+              value={form.level}
+              onChange={(e) => set('level', e.target.value as Level)}
+              className="rounded-[10px] border-[1.5px] border-border px-3.5 py-3 text-[15px]"
+            >
+              {LEVELS.map((l) => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+            Especialidade
+            <select
+              value={form.specialtyId}
+              onChange={(e) => set('specialtyId', e.target.value)}
+              className="rounded-[10px] border-[1.5px] border-border px-3.5 py-3 text-[15px]"
+            >
+              <option value="">—</option>
+              {specialties.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink">
+            Instrutor
+            <div className="flex gap-2">
+              <select
+                value={form.instructorId}
+                onChange={(e) => set('instructorId', e.target.value)}
+                className="min-w-0 flex-1 rounded-[10px] border-[1.5px] border-border px-3.5 py-3 text-[15px]"
+              >
+                <option value="">—</option>
+                {instructors.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name}
+                  </option>
+                ))}
+              </select>
+              <Button type="button" size="sm" variant="soft" onClick={() => void addInstructor()}>
+                Novo
+              </Button>
+            </div>
+          </label>
+        </div>
+
+        {form.instructorId ? (
+          <InstructorBioEditor
+            instructor={instructors.find((i) => i.id === form.instructorId)}
+            onSaved={(updated) =>
+              setInstructors((prev) => prev.map((i) => (i.id === updated.id ? updated : i)))
+            }
+          />
+        ) : null}
+
+        <CoverUploader value={form.coverUrl} onChange={(v) => set('coverUrl', v)} />
+
+        <ObjectivesEditor
+          items={form.learningObjectives}
+          onChange={(v) => set('learningObjectives', v)}
+        />
+
+        <FaqEditor items={form.faq} onChange={(v) => set('faq', v)} />
+
+        <label className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <input
+            type="checkbox"
+            checked={form.status === 'published'}
+            onChange={(e) => set('status', e.target.checked ? 'published' : 'draft')}
+          />
+          Publicado (visível no site)
+        </label>
+
+        {msg ? <p className="text-sm text-muted">{msg}</p> : null}
+        <div className="flex items-center gap-3">
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Salvando…' : isNew ? 'Criar curso' : 'Salvar alterações'}
+          </Button>
+          {isNew ? (
+            <span className="text-sm text-muted">Os módulos e aulas aparecem após criar.</span>
+          ) : null}
+        </div>
+      </form>
+
+      {!isNew && course ? <ModulesEditor course={course} onChange={setCourse} /> : null}
+    </div>
+  );
+}
+
+/* ------------------------------ Gerar com IA ----------------------------- */
+
+function AiDraftModal({
+  title,
+  canApplyModules,
+  onApplyMeta,
+  onApplyModules,
+  onClose,
+}: {
+  title: string;
+  canApplyModules: boolean;
+  onApplyMeta: (draft: AiCourseDraft) => void;
+  onApplyModules: (modules: AiCourseDraft['modules']) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [material, setMaterial] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [draft, setDraft] = useState<AiCourseDraft | null>(null);
+
+  async function generate() {
+    if (material.trim().length < 20) {
+      setError('Cole ao menos algumas linhas do material do curso.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const { data, error: err } = await api.POST('/v1/admin/ai/course-draft', {
+      body: { material: material.trim(), title: title.trim() || undefined },
+    });
+    setLoading(false);
+    if (err || !data) {
+      setError('Não foi possível gerar o rascunho. Tente novamente.');
+      return;
+    }
+    setDraft(data);
+  }
+
+  async function apply(withModules: boolean) {
+    if (!draft) return;
+    onApplyMeta(draft);
+    if (withModules) {
+      setApplying(true);
+      await onApplyModules(draft.modules);
+      setApplying(false);
+    }
+    onClose();
+  }
+
+  const totalLessons = draft?.modules.reduce((acc, m) => acc + m.lessons.length, 0) ?? 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4">
+      <div className="mt-10 w-full max-w-2xl rounded-xl border border-border bg-white p-6 shadow-xl">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-serif text-xl font-semibold text-navy-800">Gerar com IA</h2>
+          <Button type="button" size="sm" variant="text" onClick={onClose}>
+            Fechar
+          </Button>
+        </div>
+
+        {!draft ? (
+          <>
+            <p className="mb-3 text-sm text-muted">
+              Cole o material bruto do curso (ementa, tópicos, transcrição). A IA propõe subtítulo,
+              descrição, carga horária, objetivos, FAQ e estrutura de módulos. Nada é salvo — você
+              revisa antes.
+            </p>
+            <textarea
+              value={material}
+              onChange={(e) => setMaterial(e.target.value)}
+              rows={10}
+              placeholder="Ex.: Pós-graduação em Enfermagem em Urgência e Emergência. Módulo 1: classificação de risco…"
+              className="w-full rounded-[10px] border-[1.5px] border-border px-3.5 py-3 text-sm"
+            />
+            {error ? <p className="mt-2 text-sm text-error">{error}</p> : null}
+            <div className="mt-4 flex items-center gap-3">
+              <Button type="button" onClick={() => void generate()} disabled={loading}>
+                {loading ? 'Gerando…' : 'Gerar rascunho'}
+              </Button>
+              <span className="text-xs text-muted">Pode levar alguns segundos.</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col gap-3 rounded-lg border border-border bg-paper p-4 text-sm">
+              <div>
+                <span className="font-semibold text-ink">Subtítulo:</span> {draft.subtitle}
+              </div>
+              <div>
+                <span className="font-semibold text-ink">Carga horária:</span> {draft.workloadHours}
+                h
+              </div>
+              <div>
+                <span className="font-semibold text-ink">Objetivos:</span>{' '}
+                {draft.learningObjectives.length} ·{' '}
+                <span className="font-semibold text-ink">FAQ:</span> {draft.faq.length}
+              </div>
+              <div>
+                <span className="font-semibold text-ink">Estrutura:</span> {draft.modules.length}{' '}
+                módulo(s) · {totalLessons} aula(s)
+                <ul className="mt-1 list-disc pl-5 text-muted">
+                  {draft.modules.map((m, i) => (
+                    <li key={i}>
+                      {m.title} <span className="text-xs">({m.lessons.length} aulas)</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Button type="button" onClick={() => void apply(false)} disabled={applying}>
+                Aplicar metadados
+              </Button>
+              {canApplyModules && draft.modules.length > 0 ? (
+                <Button
+                  type="button"
+                  variant="soft"
+                  onClick={() => void apply(true)}
+                  disabled={applying}
+                >
+                  {applying ? 'Aplicando…' : 'Aplicar + criar módulos e aulas'}
+                </Button>
+              ) : draft.modules.length > 0 ? (
+                <span className="text-xs text-muted">
+                  Salve o curso para criar os módulos sugeridos.
+                </span>
+              ) : null}
+              <Button type="button" variant="text" onClick={() => setDraft(null)}>
+                Recomeçar
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* --------------------- Objetivos de aprendizagem ------------------------- */
+
+/** Uploader da capa do curso: envia o arquivo para a API e guarda a URL. */
+function CoverUploader({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // permite reenviar o mesmo arquivo
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const base = import.meta.env.VITE_API_URL ?? 'http://localhost:3333';
+      const res = await fetch(`${base}/v1/admin/uploads`, {
+        method: 'POST',
+        body: fd,
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = (await res.json()) as { url: string };
+      onChange(data.url);
+    } catch {
+      setError('Falha ao enviar. Use PNG, JPG ou WEBP (até 5MB) e confirme que está logado.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-ink">Capa do curso</span>
+      {value ? (
+        <img
+          src={value}
+          alt="Prévia da capa"
+          className="aspect-[16/9] w-full max-w-sm rounded-lg border border-border object-cover"
+        />
+      ) : null}
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-ink hover:bg-black/5">
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={(e) => void onFile(e)}
+          />
+          {busy ? 'Enviando…' : value ? 'Trocar imagem' : 'Enviar imagem'}
+        </label>
+        {value ? (
+          <button
+            type="button"
+            className="text-sm text-muted underline"
+            onClick={() => onChange('')}
+          >
+            Remover
+          </button>
+        ) : null}
+      </div>
+      <Field
+        label="Ou cole a URL da imagem"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="https://…"
+      />
+      {error ? <p className="text-sm text-error">{error}</p> : null}
+    </div>
+  );
+}
+
+function ObjectivesEditor({
+  items,
+  onChange,
+}: {
+  items: string[];
+  onChange: (v: string[]) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-semibold text-ink">O que o aluno vai aprender</span>
+      <p className="-mt-1 text-xs text-muted">
+        Vira a seção “O que você vai aprender” na página do curso. Deixe vazio para ocultar.
+      </p>
+      {items.map((obj, idx) => (
+        <div key={idx} className="flex items-center gap-2">
+          <input
+            value={obj}
+            onChange={(e) => onChange(items.map((o, i) => (i === idx ? e.target.value : o)))}
+            placeholder={`Objetivo ${idx + 1}`}
+            className="min-w-0 flex-1 rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="text"
+            onClick={() => onChange(items.filter((_, i) => i !== idx))}
+          >
+            Remover
+          </Button>
+        </div>
+      ))}
+      <div>
+        <Button type="button" size="sm" variant="soft" onClick={() => onChange([...items, ''])}>
+          + Objetivo
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------------- FAQ ----------------------------------- */
+
+function FaqEditor({ items, onChange }: { items: FaqItem[]; onChange: (v: FaqItem[]) => void }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <span className="text-sm font-semibold text-ink">Perguntas frequentes</span>
+      <p className="-mt-2 text-xs text-muted">
+        Se vazio, a página usa a lista padrão da G3. Preencha para personalizar por curso.
+      </p>
+      {items.map((f, idx) => (
+        <div key={idx} className="flex flex-col gap-2 rounded-lg border border-border bg-paper p-3">
+          <div className="flex items-center gap-2">
+            <input
+              value={f.question}
+              onChange={(e) =>
+                onChange(
+                  items.map((it, i) => (i === idx ? { ...it, question: e.target.value } : it)),
+                )
+              }
+              placeholder="Pergunta"
+              className="min-w-0 flex-1 rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm font-medium"
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="text"
+              onClick={() => onChange(items.filter((_, i) => i !== idx))}
+            >
+              Remover
+            </Button>
+          </div>
+          <textarea
+            value={f.answer}
+            onChange={(e) =>
+              onChange(items.map((it, i) => (i === idx ? { ...it, answer: e.target.value } : it)))
+            }
+            placeholder="Resposta"
+            rows={2}
+            className="rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+          />
+        </div>
+      ))}
+      <div>
+        <Button
+          type="button"
+          size="sm"
+          variant="soft"
+          onClick={() => onChange([...items, { question: '', answer: '' }])}
+        >
+          + Pergunta
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------- Bio da coordenação (instrutor) ------------------ */
+
+function InstructorBioEditor({
+  instructor,
+  onSaved,
+}: {
+  instructor: Instructor | undefined;
+  onSaved: (updated: Instructor) => void;
+}) {
+  const [bio, setBio] = useState(instructor?.bio ?? '');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    setBio(instructor?.bio ?? '');
+    setMsg(null);
+  }, [instructor?.id, instructor?.bio]);
+
+  if (!instructor) return null;
+
+  async function save() {
+    if (!instructor) return;
+    setSaving(true);
+    setMsg(null);
+    const { data, error } = await api.PATCH('/v1/admin/instructors/{id}', {
+      params: { path: { id: instructor.id } },
+      body: { bio: bio.trim() || null },
+    });
+    setSaving(false);
+    if (error || !data) {
+      setMsg('Não foi possível salvar a bio.');
+      return;
+    }
+    onSaved(data);
+    setMsg('Bio salva.');
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-paper p-3">
+      <span className="text-sm font-semibold text-ink">Bio de {instructor.name}</span>
+      <p className="-mt-1 text-xs text-muted">
+        Aparece na seção “Conheça a coordenação”. Salva no instrutor (vale para todos os cursos
+        dele).
+      </p>
+      <textarea
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        rows={3}
+        placeholder="Formação, atuação clínica e docente…"
+        className="rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+      />
+      <div className="flex items-center gap-3">
+        <Button type="button" size="sm" onClick={() => void save()} disabled={saving}>
+          {saving ? 'Salvando…' : 'Salvar bio'}
+        </Button>
+        {msg ? <span className="text-xs text-muted">{msg}</span> : null}
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------- Módulos e aulas --------------------------- */
+
+function ModulesEditor({
+  course,
+  onChange,
+}: {
+  course: AdminCourseDetail;
+  onChange: (c: AdminCourseDetail) => void;
+}) {
+  const [moduleTitle, setModuleTitle] = useState('');
+
+  async function addModule(e: FormEvent) {
+    e.preventDefault();
+    if (!moduleTitle.trim()) return;
+    const { data } = await api.POST('/v1/admin/courses/{id}/modules', {
+      params: { path: { id: course.id } },
+      body: { title: moduleTitle.trim() },
+    });
+    if (data) onChange(data);
+    setModuleTitle('');
+  }
+
+  async function renameModule(moduleId: string, current: string) {
+    const title = window.prompt('Título do módulo:', current);
+    if (!title?.trim()) return;
+    const { data } = await api.PATCH('/v1/admin/modules/{id}', {
+      params: { path: { id: moduleId } },
+      body: { title: title.trim() },
+    });
+    if (data) onChange(data);
+  }
+
+  async function deleteModule(moduleId: string) {
+    if (!confirm('Excluir este módulo e suas aulas?')) return;
+    const { data } = await api.DELETE('/v1/admin/modules/{id}', {
+      params: { path: { id: moduleId } },
+    });
+    if (data) onChange(data);
+  }
+
+  return (
+    <section className="mt-8">
+      <h2 className="mb-4 font-serif text-2xl font-semibold text-navy-800">Conteúdo</h2>
+
+      <div className="flex flex-col gap-4">
+        {course.modules.map((m) => (
+          <div key={m.id} className="rounded-lg border border-border bg-white">
+            <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+              <h3 className="font-serif text-base font-semibold text-navy-800">{m.title}</h3>
+              <div className="flex gap-1">
+                <Button size="sm" variant="text" onClick={() => void renameModule(m.id, m.title)}>
+                  Renomear
+                </Button>
+                <Button size="sm" variant="text" onClick={() => void deleteModule(m.id)}>
+                  Excluir
+                </Button>
+              </div>
+            </div>
+            <ul className="divide-y divide-border">
+              {m.lessons.map((l) => (
+                <LessonRow key={l.id} lesson={l} onChange={onChange} />
+              ))}
+              {m.lessons.length === 0 ? (
+                <li className="px-4 py-3 text-sm text-muted">Sem aulas ainda.</li>
+              ) : null}
+            </ul>
+            <AddLesson moduleId={m.id} onChange={onChange} />
+          </div>
+        ))}
+      </div>
+
+      <form onSubmit={addModule} className="mt-4 flex gap-2">
+        <input
+          value={moduleTitle}
+          onChange={(e) => setModuleTitle(e.target.value)}
+          placeholder="Novo módulo…"
+          className="min-w-0 flex-1 rounded-[10px] border-[1.5px] border-border px-3.5 py-2.5 text-[15px]"
+        />
+        <Button type="submit" variant="soft">
+          + Módulo
+        </Button>
+      </form>
+    </section>
+  );
+}
+
+type Lesson = AdminCourseDetail['modules'][number]['lessons'][number];
+
+function LessonRow({
+  lesson,
+  onChange,
+}: {
+  lesson: Lesson;
+  onChange: (c: AdminCourseDetail) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(lesson.title);
+  const [minutes, setMinutes] = useState(String(Math.round(lesson.durationSeconds / 60)));
+  const [vimeo, setVimeo] = useState(lesson.vimeoVideoId ?? '');
+  const [free, setFree] = useState(lesson.isFree);
+
+  async function save() {
+    const { data } = await api.PATCH('/v1/admin/lessons/{id}', {
+      params: { path: { id: lesson.id } },
+      body: {
+        title,
+        durationSeconds: (Number(minutes) || 0) * 60,
+        vimeoVideoId: vimeo || null,
+        isFree: free,
+      },
+    });
+    if (data) onChange(data);
+    setEditing(false);
+  }
+
+  async function remove() {
+    if (!confirm('Excluir esta aula?')) return;
+    const { data } = await api.DELETE('/v1/admin/lessons/{id}', {
+      params: { path: { id: lesson.id } },
+    });
+    if (data) onChange(data);
+  }
+
+  if (editing) {
+    return (
+      <li className="flex flex-col gap-2 bg-navy-50/40 px-4 py-3">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+          placeholder="Título da aula"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+            inputMode="numeric"
+            className="w-24 rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+            placeholder="min"
+          />
+          <input
+            value={vimeo}
+            onChange={(e) => setVimeo(e.target.value)}
+            className="w-40 rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+            placeholder="Vimeo ID"
+          />
+          <label className="flex items-center gap-1.5 text-sm text-ink">
+            <input type="checkbox" checked={free} onChange={(e) => setFree(e.target.checked)} />{' '}
+            Prévia
+          </label>
+          <div className="ml-auto flex gap-1">
+            <Button size="sm" onClick={() => void save()}>
+              Salvar
+            </Button>
+            <Button size="sm" variant="text" onClick={() => setEditing(false)}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      </li>
+    );
+  }
+
+  return (
+    <li className="flex items-center gap-3 px-4 py-3">
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium text-ink">{lesson.title}</span>
+        <span className="text-xs text-muted">
+          {Math.max(1, Math.round(lesson.durationSeconds / 60))} min
+          {lesson.vimeoVideoId ? ` · Vimeo ${lesson.vimeoVideoId}` : ' · sem vídeo'}
+          {lesson.isFree ? ' · prévia' : ''}
+        </span>
+      </span>
+      <Button size="sm" variant="text" onClick={() => setEditing(true)}>
+        Editar
+      </Button>
+      <Button size="sm" variant="text" onClick={() => void remove()}>
+        Excluir
+      </Button>
+    </li>
+  );
+}
+
+function AddLesson({
+  moduleId,
+  onChange,
+}: {
+  moduleId: string;
+  onChange: (c: AdminCourseDetail) => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [minutes, setMinutes] = useState('');
+  const [vimeo, setVimeo] = useState('');
+
+  async function add(e: FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) return;
+    const { data } = await api.POST('/v1/admin/modules/{id}/lessons', {
+      params: { path: { id: moduleId } },
+      body: {
+        title: title.trim(),
+        durationSeconds: (Number(minutes) || 0) * 60,
+        vimeoVideoId: vimeo || null,
+        isFree: false,
+      },
+    });
+    if (data) onChange(data);
+    setTitle('');
+    setMinutes('');
+    setVimeo('');
+  }
+
+  return (
+    <form onSubmit={add} className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Nova aula…"
+        className="min-w-0 flex-1 rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+      />
+      <input
+        value={minutes}
+        onChange={(e) => setMinutes(e.target.value)}
+        inputMode="numeric"
+        placeholder="min"
+        className="w-20 rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+      />
+      <input
+        value={vimeo}
+        onChange={(e) => setVimeo(e.target.value)}
+        placeholder="Vimeo ID"
+        className="w-32 rounded-[8px] border-[1.5px] border-border px-3 py-2 text-sm"
+      />
+      <Button type="submit" size="sm" variant="soft">
+        + Aula
+      </Button>
+    </form>
+  );
+}

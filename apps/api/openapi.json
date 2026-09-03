@@ -1,0 +1,5079 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "G3 API",
+    "version": "0.1.0",
+    "description": "API da plataforma G3 — educação na área da saúde."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "RegisterInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 200
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LoginInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "PublicUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "aluno",
+              "staff",
+              "admin"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role"
+        ]
+      },
+      "AuthUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "aluno",
+              "staff",
+              "admin"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role"
+        ]
+      },
+      "Specialty": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "icon"
+        ]
+      },
+      "HeroSlide": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "hotspots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "href": {
+                  "type": "string"
+                },
+                "left": {
+                  "type": "string"
+                },
+                "top": {
+                  "type": "string"
+                },
+                "width": {
+                  "type": "string"
+                },
+                "height": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label",
+                "href",
+                "left",
+                "top",
+                "width",
+                "height"
+              ]
+            }
+          },
+          "sortOrder": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "imageUrl",
+          "alt",
+          "hotspots",
+          "sortOrder"
+        ]
+      },
+      "AdminHeroSlide": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "hotspots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "href": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "left": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "top": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "width": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "height": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                }
+              },
+              "required": [
+                "label",
+                "href",
+                "left",
+                "top",
+                "width",
+                "height"
+              ]
+            }
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "imageUrl",
+          "alt",
+          "hotspots",
+          "sortOrder",
+          "active"
+        ]
+      },
+      "CreateHeroSlideInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "imageUrl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "alt": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "hotspots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "href": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "left": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "top": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "width": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "height": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                }
+              },
+              "required": [
+                "label",
+                "href",
+                "left",
+                "top",
+                "width",
+                "height"
+              ]
+            },
+            "maxItems": 6
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 999
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "title",
+          "imageUrl"
+        ]
+      },
+      "UpdateHeroSlideInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "imageUrl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "alt": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "hotspots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "href": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "left": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "top": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "width": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                },
+                "height": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 12
+                }
+              },
+              "required": [
+                "label",
+                "href",
+                "left",
+                "top",
+                "width",
+                "height"
+              ]
+            },
+            "maxItems": 6
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 999
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CourseSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "priceCents": {
+            "type": "integer"
+          },
+          "maxInstallments": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "iniciante",
+              "intermediario",
+              "avancado"
+            ]
+          },
+          "comingSoon": {
+            "type": "boolean"
+          },
+          "coverUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "specialty": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug",
+              "name"
+            ]
+          },
+          "instructor": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "bio": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "avatarUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "slug",
+              "name",
+              "bio",
+              "avatarUrl"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "subtitle",
+          "priceCents",
+          "maxInstallments",
+          "level",
+          "comingSoon",
+          "coverUrl",
+          "specialty",
+          "instructor"
+        ]
+      },
+      "CourseDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "priceCents": {
+            "type": "integer"
+          },
+          "maxInstallments": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "iniciante",
+              "intermediario",
+              "avancado"
+            ]
+          },
+          "comingSoon": {
+            "type": "boolean"
+          },
+          "coverUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "specialty": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug",
+              "name"
+            ]
+          },
+          "instructor": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "bio": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "avatarUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "slug",
+              "name",
+              "bio",
+              "avatarUrl"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workloadHours": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "faq": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "answer": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "question",
+                "answer"
+              ]
+            }
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "position": {
+                  "type": "integer"
+                },
+                "lessons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "durationSeconds": {
+                        "type": "integer"
+                      },
+                      "isFree": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "durationSeconds",
+                      "isFree"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "position",
+                "lessons"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "subtitle",
+          "priceCents",
+          "maxInstallments",
+          "level",
+          "comingSoon",
+          "coverUrl",
+          "specialty",
+          "instructor",
+          "description",
+          "workloadHours",
+          "learningObjectives",
+          "faq",
+          "modules"
+        ]
+      },
+      "EnrolledCourse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "coverUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "specialty": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug",
+              "name"
+            ]
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "completed": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "pct": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "completed",
+              "total",
+              "pct"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "coverUrl",
+          "specialty",
+          "progress"
+        ]
+      },
+      "CoursePlayer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "instructor": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "avatarUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "avatarUrl"
+            ]
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "position": {
+                  "type": "integer"
+                },
+                "lessons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "durationSeconds": {
+                        "type": "integer"
+                      },
+                      "vimeoVideoId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "completed": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "durationSeconds",
+                      "vimeoVideoId",
+                      "completed"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "position",
+                "lessons"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "subtitle",
+          "instructor",
+          "modules"
+        ]
+      },
+      "SecretariaRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "in_progress",
+              "resolved"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "subject",
+          "body",
+          "status",
+          "createdAt"
+        ]
+      },
+      "CreateSecretariaInput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "type",
+          "subject"
+        ]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "aluno",
+              "staff",
+              "admin"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "createdAt"
+        ]
+      },
+      "UpdateProfileInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ChangePasswordInput": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "Certificate": {
+        "type": "object",
+        "properties": {
+          "studentName": {
+            "type": "string"
+          },
+          "courseTitle": {
+            "type": "string"
+          },
+          "courseSlug": {
+            "type": "string"
+          },
+          "instructorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lessonsTotal": {
+            "type": "integer"
+          },
+          "completedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "studentName",
+          "courseTitle",
+          "courseSlug",
+          "instructorName",
+          "lessonsTotal",
+          "completedAt"
+        ]
+      },
+      "CreateCheckoutInput": {
+        "type": "object",
+        "properties": {
+          "courseSlug": {
+            "type": "string",
+            "minLength": 1
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "pix",
+              "card",
+              "boleto"
+            ]
+          },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 120
+              },
+              "cpfCnpj": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 20
+              },
+              "postalCode": {
+                "type": "string",
+                "maxLength": 9
+              },
+              "addressNumber": {
+                "type": "string",
+                "maxLength": 20
+              }
+            },
+            "required": [
+              "name",
+              "cpfCnpj"
+            ]
+          },
+          "card": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "string",
+                "minLength": 12,
+                "maxLength": 19
+              },
+              "holderName": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 120
+              },
+              "expMonth": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "expYear": {
+                "type": "integer",
+                "minimum": 2024,
+                "maximum": 2100
+              },
+              "cvv": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 4
+              }
+            },
+            "required": [
+              "number",
+              "holderName",
+              "expMonth",
+              "expYear",
+              "cvv"
+            ]
+          },
+          "installments": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 24,
+            "default": 1
+          },
+          "attribution": {
+            "type": "object",
+            "properties": {
+              "utmSource": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "utmMedium": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "utmCampaign": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "utmContent": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "utmTerm": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "referrer": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "landingPath": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "gclid": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "fbclid": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          }
+        },
+        "required": [
+          "courseSlug",
+          "method",
+          "customer"
+        ]
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "cancelled",
+              "refunded"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "pix",
+              "card",
+              "boleto"
+            ]
+          },
+          "amountCents": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "installments": {
+            "type": "integer"
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "coverUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "slug",
+              "title",
+              "coverUrl"
+            ]
+          },
+          "pixQrCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pixCopyPaste": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "boletoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "simulatable": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "method",
+          "amountCents",
+          "currency",
+          "installments",
+          "course",
+          "pixQrCode",
+          "pixCopyPaste",
+          "boletoUrl",
+          "simulatable",
+          "createdAt"
+        ]
+      },
+      "PaymentWebhookInput": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "providerChargeId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paid",
+              "failed",
+              "refunded"
+            ]
+          }
+        },
+        "required": [
+          "event",
+          "providerChargeId",
+          "status"
+        ]
+      },
+      "CreateLeadInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "attribution": {
+            "type": "object",
+            "properties": {
+              "utmSource": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "utmMedium": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "utmCampaign": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "utmContent": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "utmTerm": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "referrer": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "landingPath": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "gclid": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "fbclid": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          }
+        },
+        "required": [
+          "name",
+          "email"
+        ]
+      },
+      "Lead": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "new",
+              "contacted",
+              "qualified",
+              "won",
+              "lost"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "utmSource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "utmMedium": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "utmCampaign": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "phone",
+          "source",
+          "stage",
+          "notes",
+          "utmSource",
+          "utmMedium",
+          "utmCampaign",
+          "createdAt"
+        ]
+      },
+      "Opportunity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "prospeccao",
+              "qualificacao",
+              "proposta",
+              "negociacao",
+              "ganho",
+              "perdido"
+            ]
+          },
+          "valueCents": {
+            "type": "integer"
+          },
+          "probability": {
+            "type": "integer"
+          },
+          "expectedCloseDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "leadId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "leadName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ownerId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "ownerName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "stage",
+          "valueCents",
+          "probability",
+          "expectedCloseDate",
+          "leadId",
+          "leadName",
+          "ownerId",
+          "ownerName",
+          "createdAt"
+        ]
+      },
+      "CreateOpportunityInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "prospeccao",
+              "qualificacao",
+              "proposta",
+              "negociacao",
+              "ganho",
+              "perdido"
+            ],
+            "default": "prospeccao"
+          },
+          "valueCents": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "probability": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 0
+          },
+          "expectedCloseDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "leadId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "ownerId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "UpdateOpportunityInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "prospeccao",
+              "qualificacao",
+              "proposta",
+              "negociacao",
+              "ganho",
+              "perdido"
+            ]
+          },
+          "valueCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "probability": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "expectedCloseDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "leadId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "ownerId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "Kpis": {
+        "type": "object",
+        "properties": {
+          "students": {
+            "type": "integer"
+          },
+          "activeEnrollments": {
+            "type": "integer"
+          },
+          "publishedCourses": {
+            "type": "integer"
+          },
+          "completionRate": {
+            "type": "number"
+          },
+          "estimatedRevenueCents": {
+            "type": "integer"
+          },
+          "leadsByStage": {
+            "type": "object",
+            "properties": {
+              "new": {
+                "type": "integer"
+              },
+              "contacted": {
+                "type": "integer"
+              },
+              "qualified": {
+                "type": "integer"
+              },
+              "won": {
+                "type": "integer"
+              },
+              "lost": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "new",
+              "contacted",
+              "qualified",
+              "won",
+              "lost"
+            ]
+          }
+        },
+        "required": [
+          "students",
+          "activeEnrollments",
+          "publishedCourses",
+          "completionRate",
+          "estimatedRevenueCents",
+          "leadsByStage"
+        ]
+      },
+      "MonthlyKpi": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "enrollments": {
+            "type": "integer"
+          },
+          "revenueCents": {
+            "type": "integer"
+          },
+          "wonCents": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "month",
+          "label",
+          "enrollments",
+          "revenueCents",
+          "wonCents"
+        ]
+      },
+      "Channel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "pago",
+              "organico",
+              "base_propria"
+            ]
+          },
+          "color": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "channelId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "utmSource": {
+                  "type": "string"
+                },
+                "utmMedium": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "priority": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "id",
+                "channelId",
+                "utmSource",
+                "utmMedium",
+                "priority"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "group",
+          "color",
+          "active",
+          "sortOrder",
+          "rules"
+        ]
+      },
+      "CreateChannelInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "pago",
+              "organico",
+              "base_propria"
+            ],
+            "default": "organico"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "default": "#3E7D5F"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "utmSource": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "utmMedium": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 200
+                },
+                "priority": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              },
+              "required": [
+                "utmSource"
+              ]
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateChannelInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "pago",
+              "organico",
+              "base_propria"
+            ]
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer"
+          }
+        }
+      },
+      "CreateChannelRuleInput": {
+        "type": "object",
+        "properties": {
+          "utmSource": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "utmMedium": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "utmSource"
+        ]
+      },
+      "UpdateChannelRuleInput": {
+        "type": "object",
+        "properties": {
+          "utmSource": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "utmMedium": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        }
+      },
+      "LeadsFlow": {
+        "type": "object",
+        "properties": {
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "group": {
+                  "type": "string",
+                  "enum": [
+                    "pago",
+                    "organico",
+                    "base_propria"
+                  ]
+                },
+                "color": {
+                  "type": "string"
+                },
+                "byStage": {
+                  "type": "object",
+                  "properties": {
+                    "new": {
+                      "type": "integer"
+                    },
+                    "contacted": {
+                      "type": "integer"
+                    },
+                    "qualified": {
+                      "type": "integer"
+                    },
+                    "won": {
+                      "type": "integer"
+                    },
+                    "lost": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "new",
+                    "contacted",
+                    "qualified",
+                    "won",
+                    "lost",
+                    "total"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "group",
+                "color",
+                "byStage"
+              ]
+            }
+          },
+          "unmapped": {
+            "type": "object",
+            "properties": {
+              "new": {
+                "type": "integer"
+              },
+              "contacted": {
+                "type": "integer"
+              },
+              "qualified": {
+                "type": "integer"
+              },
+              "won": {
+                "type": "integer"
+              },
+              "lost": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "new",
+              "contacted",
+              "qualified",
+              "won",
+              "lost",
+              "total"
+            ]
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "new": {
+                "type": "integer"
+              },
+              "contacted": {
+                "type": "integer"
+              },
+              "qualified": {
+                "type": "integer"
+              },
+              "won": {
+                "type": "integer"
+              },
+              "lost": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "new",
+              "contacted",
+              "qualified",
+              "won",
+              "lost",
+              "total"
+            ]
+          }
+        },
+        "required": [
+          "channels",
+          "unmapped",
+          "totals"
+        ]
+      },
+      "UnmappedOrigin": {
+        "type": "object",
+        "properties": {
+          "utmSource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "utmMedium": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "utmSource",
+          "utmMedium",
+          "count"
+        ]
+      },
+      "AdminCourse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "iniciante",
+              "intermediario",
+              "avancado"
+            ]
+          },
+          "priceCents": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "status",
+          "level",
+          "priceCents",
+          "createdAt"
+        ]
+      },
+      "AdminCourseDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "priceCents": {
+            "type": "integer"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "iniciante",
+              "intermediario",
+              "avancado"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ]
+          },
+          "coverUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "specialtyId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "instructorId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "workloadHours": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "faq": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "answer": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "question",
+                "answer"
+              ]
+            }
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "position": {
+                  "type": "integer"
+                },
+                "lessons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "durationSeconds": {
+                        "type": "integer"
+                      },
+                      "vimeoVideoId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "position": {
+                        "type": "integer"
+                      },
+                      "isFree": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "durationSeconds",
+                      "vimeoVideoId",
+                      "position",
+                      "isFree"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "position",
+                "lessons"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "subtitle",
+          "description",
+          "priceCents",
+          "level",
+          "status",
+          "coverUrl",
+          "specialtyId",
+          "instructorId",
+          "workloadHours",
+          "learningObjectives",
+          "faq",
+          "modules"
+        ]
+      },
+      "CreateCourseInput": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 8000
+          },
+          "priceCents": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "iniciante",
+              "intermediario",
+              "avancado"
+            ],
+            "default": "iniciante"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "default": "draft"
+          },
+          "coverUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "format": "uri"
+          },
+          "specialtyId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "instructorId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "workloadHours": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            },
+            "maxItems": 30
+          },
+          "faq": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "answer": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "question",
+                "answer"
+              ]
+            },
+            "maxItems": 30
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "CreateModuleInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "UpdateModuleInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "CreateLessonInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "vimeoVideoId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 60
+          },
+          "isFree": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "UpdateLessonInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "vimeoVideoId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 60
+          },
+          "isFree": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Instructor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "avatarUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "bio",
+          "avatarUrl"
+        ]
+      },
+      "CreateInstructorInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000
+          },
+          "avatarUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "format": "uri"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateInstructorInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000
+          },
+          "avatarUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "format": "uri"
+          }
+        }
+      },
+      "AdminUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "aluno",
+              "staff",
+              "admin"
+            ]
+          },
+          "enrollments": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "enrollments",
+          "createdAt"
+        ]
+      },
+      "AdminEnrollment": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseId",
+          "title",
+          "slug",
+          "status",
+          "createdAt"
+        ]
+      },
+      "EnrollUserInput": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "courseId"
+        ]
+      },
+      "CreateUserInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "aluno",
+              "staff",
+              "admin"
+            ],
+            "default": "aluno"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UpdateUserInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "aluno",
+              "staff",
+              "admin"
+            ]
+          }
+        }
+      },
+      "ResetPasswordInput": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "newPassword"
+        ]
+      },
+      "Student": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "enrollments": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "enrollments",
+          "createdAt"
+        ]
+      },
+      "AiStatus": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "AiCourseDraftInput": {
+        "type": "object",
+        "properties": {
+          "material": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 20000
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "material"
+        ]
+      },
+      "AiCourseDraft": {
+        "type": "object",
+        "properties": {
+          "subtitle": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "workloadHours": {
+            "type": "integer"
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "faq": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": {
+                  "type": "string"
+                },
+                "answer": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "question",
+                "answer"
+              ]
+            }
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "lessons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "durationMinutes": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "durationMinutes"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "title",
+                "lessons"
+              ]
+            }
+          }
+        },
+        "required": [
+          "subtitle",
+          "description",
+          "workloadHours",
+          "learningObjectives",
+          "faq",
+          "modules"
+        ]
+      },
+      "UpdateCourseInput": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 8000
+          },
+          "priceCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "iniciante",
+              "intermediario",
+              "avancado"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ]
+          },
+          "coverUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "format": "uri"
+          },
+          "specialtyId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "instructorId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "workloadHours": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            },
+            "maxItems": 30
+          },
+          "faq": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "answer": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "question",
+                "answer"
+              ]
+            },
+            "maxItems": 30
+          }
+        }
+      },
+      "UpdateLeadInput": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "new",
+              "contacted",
+              "qualified",
+              "won",
+              "lost"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        }
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/v1/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Cadastro de aluno (cria sessão)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login (cria sessão)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas"
+          }
+        }
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Encerra a sessão",
+        "responses": {
+          "204": {
+            "description": "Sem conteúdo"
+          }
+        }
+      }
+    },
+    "/v1/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Usuário autenticado",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/v1/catalog/specialties": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Lista especialidades",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Specialty"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/hero-slides": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Lista slides ativos do carrossel do Hero",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HeroSlide"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/courses": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Lista cursos publicados",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": false,
+            "name": "specialty",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "iniciante",
+                "intermediario",
+                "avancado"
+              ]
+            },
+            "required": false,
+            "name": "level",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/courses/{slug}": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Detalhe do curso",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Não encontrado"
+          }
+        }
+      }
+    },
+    "/v1/me/courses": {
+      "get": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Cursos matriculados do aluno",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnrolledCourse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/v1/me/courses/{slug}": {
+      "get": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Player do curso (aulas com vídeo; exige matrícula)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursePlayer"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Não matriculado"
+          }
+        }
+      }
+    },
+    "/v1/me/lessons/{lessonId}/complete": {
+      "post": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Marca aula como concluída",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "lessonId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Registrado"
+          },
+          "403": {
+            "description": "Não matriculado"
+          }
+        }
+      }
+    },
+    "/v1/me/secretaria": {
+      "get": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Solicitações da secretaria do aluno",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SecretariaRequest"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Abre uma solicitação de secretaria",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSecretariaInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretariaRequest"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/checkout": {
+      "post": {
+        "tags": [
+          "checkout"
+        ],
+        "summary": "Inicia o checkout de um curso (exige sessão)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pedido criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          },
+          "409": {
+            "description": "Já matriculado"
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}": {
+      "get": {
+        "tags": [
+          "checkout"
+        ],
+        "summary": "Consulta o pedido (polling do status de pagamento)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Não encontrado"
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}/simulate-payment": {
+      "post": {
+        "tags": [
+          "checkout"
+        ],
+        "summary": "Simula a confirmação do pagamento (dev; substitui o webhook)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Indisponível"
+          }
+        }
+      }
+    },
+    "/v1/webhooks/payments": {
+      "post": {
+        "tags": [
+          "checkout"
+        ],
+        "summary": "Webhook de confirmação do gateway de pagamento",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentWebhookInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recebido"
+          }
+        }
+      }
+    },
+    "/v1/me/profile": {
+      "get": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Perfil do aluno",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Atualiza o nome do aluno",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/password": {
+      "post": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Troca a senha (exige a senha atual)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Trocada"
+          },
+          "401": {
+            "description": "Senha atual incorreta"
+          }
+        }
+      }
+    },
+    "/v1/me/courses/{slug}/certificate": {
+      "get": {
+        "tags": [
+          "aluno"
+        ],
+        "summary": "Certificado de conclusão (curso 100% concluído)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Certificate"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Curso não concluído"
+          }
+        }
+      }
+    },
+    "/v1/leads": {
+      "post": {
+        "tags": [
+          "crm"
+        ],
+        "summary": "Captura pública de lead (site)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lead"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/kpis": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "KPIs do painel (staff/admin)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kpis"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão"
+          }
+        }
+      }
+    },
+    "/v1/admin/kpis/monthly": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Série mensal de matrículas e receita (últimos 6 meses)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MonthlyKpi"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/courses": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Lista todos os cursos (inclui rascunhos)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminCourse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Cria um curso",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCourseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/students": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Lista alunos com contagem de matrículas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Student"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/leads": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Lista leads do funil de CRM",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Lead"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/courses/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza/publica um curso",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCourseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Detalhe do curso (com módulos e aulas)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Exclui (soft-delete) um curso",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/admin/leads/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza estágio/notas de um lead",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLeadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lead"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/opportunities": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Lista oportunidades do funil de vendas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Opportunity"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Cria uma oportunidade",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOpportunityInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Opportunity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/opportunities/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza uma oportunidade",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOpportunityInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Opportunity"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Exclui uma oportunidade",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/admin/courses/{id}/modules": {
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Cria um módulo no curso",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateModuleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/modules/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza um módulo",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModuleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Exclui um módulo",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/modules/{id}/lessons": {
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Cria uma aula no módulo",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLessonInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/lessons/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza uma aula",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLessonInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Exclui uma aula",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/instructors": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Lista instrutores",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Instructor"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Cria um instrutor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInstructorInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Instructor"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/instructors/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza um instrutor (nome/bio/avatar)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInstructorInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Instructor"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/hero-slides": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Lista slides do Hero (todos, inclusive inativos)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminHeroSlide"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Cria um slide do Hero",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHeroSlideInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHeroSlide"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/hero-slides/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza um slide do Hero",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHeroSlideInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHeroSlide"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Remove um slide do Hero",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removido"
+          }
+        }
+      }
+    },
+    "/v1/admin/users": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Lista usuários (todos os papéis)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUser"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Cria um usuário",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUser"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "E-mail já cadastrado"
+          }
+        }
+      }
+    },
+    "/v1/admin/users/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza nome/papel de um usuário",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUser"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Desativa (soft-delete) um usuário",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/admin/users/{id}/password": {
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Define nova senha para um usuário (reset)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/admin/users/{id}/enrollments": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Matrículas de um usuário",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminEnrollment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Matricula um usuário em um curso",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminEnrollment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/users/{id}/enrollments/{courseId}": {
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Remove a matrícula de um usuário em um curso",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "courseId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminEnrollment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/channels": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Lista canais de aquisição (com regras)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Channel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Cria um canal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChannelInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Channel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/channels/{id}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza um canal",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChannelInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Channel"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Exclui um canal",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/admin/channels/{id}/rules": {
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Adiciona uma regra ao canal",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChannelRuleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Channel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/channels/rules/{ruleId}": {
+      "patch": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Atualiza uma regra",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ruleId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChannelRuleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Channel"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Remove uma regra",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ruleId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Channel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/channels/leads-flow": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Fluxo de leads por canal × estágio (janela opcional from/to)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadsFlow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/channels/unmapped-origins": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Origens (utm) sem regra de canal",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UnmappedOrigin"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/ai/status": {
+      "get": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Estado do recurso de IA (habilitado quando há chave configurada)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/ai/course-draft": {
+      "post": {
+        "tags": [
+          "backoffice"
+        ],
+        "summary": "Gera um rascunho de curso a partir de material bruto (não persiste)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiCourseDraftInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiCourseDraft"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Rascunho inválido"
+          },
+          "503": {
+            "description": "IA indisponível"
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

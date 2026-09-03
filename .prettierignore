@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.next
+out
+coverage
+pnpm-lock.yaml
+docs/prototype
+apps/api/drizzle
+apps/api/openapi.json
+packages/api-client/src/schema.ts
+**/next-env.d.ts
+*.min.js
+*.min.css

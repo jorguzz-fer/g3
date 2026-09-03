@@ -1,0 +1,448 @@
+import { useEffect, useMemo, useState } from 'react';
+import { api, type Kpis, type LeadsFlow } from '../api';
+
+/**
+ * Mapa de fluxo — jornada ponta a ponta:
+ * Canais → Qualificação (SDR·IA) → CRM → Matrícula → Aluno.
+ * Canais e funil usam dados reais (endpoint leads-flow + KPIs). Sem dados,
+ * cai no template de aquisição. Conexões com fluxo animado; largura ~ volume.
+ */
+
+type ChannelRow = { label: string; color: string; group: string; total: number };
+
+const GROUP_META: Record<string, { label: string; order: number }> = {
+  pago: { label: 'Pago', order: 0 },
+  organico: { label: 'Orgânico', order: 1 },
+  base_propria: { label: 'Base própria', order: 2 },
+  unmapped: { label: 'Sem origem', order: 3 },
+};
+
+// Template usado como fallback quando ainda não há dados de canais/leads.
+const TEMPLATE: ChannelRow[] = [
+  ...['Google Ads', 'Meta Ads', 'TikTok Ads', 'LinkedIn'].map((label) => ({
+    label,
+    color: '#C9A04A',
+    group: 'pago',
+    total: 0,
+  })),
+  ...['Landing pages', 'Blog', 'Instagram', 'E-mail mkt', 'Quiz vocacional'].map((label) => ({
+    label,
+    color: '#345089',
+    group: 'organico',
+    total: 0,
+  })),
+  ...['Base própria', 'Upsell', 'Egressos', 'Cross-sell'].map((label) => ({
+    label,
+    color: '#2B6CB0',
+    group: 'base_propria',
+    total: 0,
+  })),
+];
+
+const CRM_STAGES: Array<{ key: keyof Kpis['leadsByStage']; label: string; color: string }> = [
+  { key: 'new', label: 'Novo', color: '#94a3b8' },
+  { key: 'contacted', label: 'Contatado', color: '#60a5fa' },
+  { key: 'qualified', label: 'Qualificado', color: '#C9A04A' },
+  { key: 'won', label: 'Ganho', color: '#2f7d5b' },
+  { key: 'lost', label: 'Perdido', color: '#d97878' },
+];
+
+// Geometria (viewBox fixo; largura fluida com scroll horizontal).
+const VW = 1360;
+const TOP = 52;
+const CHIP_X = 96;
+const CHIP_W = 158;
+const CHIP_H = 28;
+const CHIP_GAP = 9;
+const GROUP_GAP = 24;
+const SDR_X = 420;
+const SDR_W = 150;
+const SDR_H = 92;
+const CRM_X = 690;
+const CRM_W = 208;
+const ENROLL_X = 982;
+const STUDENT_X = 1194;
+const NODE_W = 134;
+const NODE_H = 78;
+
+export function FunnelMapPage() {
+  const [kpis, setKpis] = useState<Kpis | null>(null);
+  const [flow, setFlow] = useState<LeadsFlow | null>(null);
+
+  useEffect(() => {
+    api
+      .GET('/v1/admin/kpis')
+      .then(({ data }) => setKpis(data ?? null))
+      .catch(() => setKpis(null));
+    api
+      .GET('/v1/admin/channels/leads-flow')
+      .then(({ data }) => setFlow(data ?? null))
+      .catch(() => setFlow(null));
+  }, []);
+
+  // Canais reais (com contagem) ou template como fallback.
+  const channelRows = useMemo<ChannelRow[]>(() => {
+    if (flow && flow.channels.length) {
+      const rows: ChannelRow[] = flow.channels.map((c) => ({
+        label: c.name,
+        color: c.color,
+        group: c.group,
+        total: c.byStage.total,
+      }));
+      if (flow.unmapped.total > 0) {
+        rows.push({
+          label: 'Não mapeado',
+          color: '#94a3b8',
+          group: 'unmapped',
+          total: flow.unmapped.total,
+        });
+      }
+      return rows;
+    }
+    return TEMPLATE;
+  }, [flow]);
+
+  const maxTotal = Math.max(1, ...channelRows.map((r) => r.total));
+
+  const layout = useMemo(() => {
+    const groupsPresent = [...new Set(channelRows.map((r) => r.group))].sort(
+      (a, b) => (GROUP_META[a]?.order ?? 9) - (GROUP_META[b]?.order ?? 9),
+    );
+    let y = TOP;
+    const chips: Array<ChannelRow & { y: number }> = [];
+    const groups: Array<{ label: string; color: string; y: number }> = [];
+    for (const gk of groupsPresent) {
+      const items = channelRows.filter((r) => r.group === gk);
+      const start = y;
+      for (const c of items) {
+        chips.push({ ...c, y: y + CHIP_H / 2 });
+        y += CHIP_H + CHIP_GAP;
+      }
+      groups.push({
+        label: GROUP_META[gk]?.label ?? gk,
+        color: items[0]?.color ?? '#4A5570',
+        y: (start + (y - CHIP_GAP)) / 2,
+      });
+      y += GROUP_GAP;
+    }
+    return { chips, groups, bottom: y - GROUP_GAP };
+  }, [channelRows]);
+
+  const midY = (TOP + layout.bottom) / 2;
+  const VH = layout.bottom + 40;
+
+  const leads = kpis?.leadsByStage;
+  const totalLeads = leads
+    ? leads.new + leads.contacted + leads.qualified + leads.won + leads.lost
+    : 0;
+  const qualified = leads ? leads.qualified + leads.won : 0;
+  const won = leads?.won ?? 0;
+  const maxStage = leads ? Math.max(1, ...CRM_STAGES.map((s) => leads[s.key])) : 1;
+  const enrollments = kpis?.activeEnrollments ?? 0;
+  const students = kpis?.students ?? 0;
+
+  const chipPath = (cy: number) =>
+    `M ${CHIP_X + CHIP_W} ${cy} C ${CHIP_X + CHIP_W + 120} ${cy}, ${SDR_X - 110} ${midY}, ${SDR_X} ${midY}`;
+  const straight = (x1: number, x2: number) =>
+    `M ${x1} ${midY} C ${x1 + 40} ${midY}, ${x2 - 40} ${midY}, ${x2} ${midY}`;
+
+  return (
+    <div>
+      <style>{`
+        @keyframes g3-flow { to { stroke-dashoffset: -20; } }
+        .fmap-flow { stroke-dasharray: 3 7; animation: g3-flow .9s linear infinite; }
+      `}</style>
+
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-serif text-3xl font-semibold text-navy-800">Fluxo de aquisição</h1>
+        <span className="rounded-full bg-gold-50 px-3 py-1 text-xs font-medium text-gold-600">
+          experimental
+        </span>
+      </div>
+      <p className="mb-5 text-sm text-muted">
+        Jornada ponta a ponta: canais → qualificação (SDR por IA) → CRM → matrícula → aluno. Canais
+        e funil usam dados reais — a largura das conexões cresce com o volume de leads; canais sem
+        dados ficam apagados.
+      </p>
+
+      <div className="mb-4 flex flex-wrap gap-3">
+        <FlowStat label="Leads no funil" value={totalLeads} color="#1C3466" />
+        <FlowStat label="Qualificados" value={qualified} color="#C9A04A" />
+        <FlowStat label="Ganhos" value={won} color="#2f7d5b" />
+        <FlowStat label="Matrículas ativas" value={enrollments} color="#345089" />
+        <FlowStat label="Alunos" value={students} color="#06173F" />
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border bg-white">
+        <svg
+          viewBox={`0 0 ${VW} ${VH}`}
+          className="min-w-[1080px]"
+          role="img"
+          aria-label="Mapa de fluxo de aquisição de leads"
+        >
+          <defs>
+            <pattern id="fmap-grid" width="26" height="26" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="1" fill="#ECEEF1" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width={VW} height={VH} fill="url(#fmap-grid)" />
+
+          {layout.groups.map((g) => (
+            <text key={g.label} x={24} y={g.y + 4} fontSize="12" fontWeight="700" fill={g.color}>
+              {g.label}
+            </text>
+          ))}
+
+          {/* canal → SDR (largura/opacidade ~ volume de leads) */}
+          {layout.chips.map((c, i) => {
+            const w = 1.2 + (c.total / maxTotal) * 3.5;
+            const op = c.total > 0 ? 0.35 + (c.total / maxTotal) * 0.5 : 0.16;
+            return (
+              <g key={`edge-${i}`}>
+                <path
+                  id={`fmap-p${i}`}
+                  d={chipPath(c.y)}
+                  fill="none"
+                  stroke={c.color}
+                  strokeOpacity={op}
+                  strokeWidth={w}
+                  className={c.total > 0 ? 'fmap-flow' : undefined}
+                />
+                {c.total > 0 ? (
+                  <circle r="3" fill={c.color}>
+                    <animateMotion dur="3s" begin={`${(i % 6) * 0.42}s`} repeatCount="indefinite">
+                      <mpath href={`#fmap-p${i}`} />
+                    </animateMotion>
+                  </circle>
+                ) : null}
+              </g>
+            );
+          })}
+
+          {/* SDR → CRM → Matrícula → Aluno (trilha principal) */}
+          {[
+            { id: 'sdr-crm', d: straight(SDR_X + SDR_W, CRM_X) },
+            { id: 'crm-enr', d: straight(CRM_X + CRM_W, ENROLL_X) },
+            { id: 'enr-stu', d: straight(ENROLL_X + NODE_W, STUDENT_X) },
+          ].map((seg) => (
+            <g key={seg.id}>
+              <path
+                id={`fmap-${seg.id}`}
+                d={seg.d}
+                fill="none"
+                stroke="#1C3466"
+                strokeOpacity="0.6"
+                strokeWidth="2.5"
+                className="fmap-flow"
+              />
+              {[0, 1, 2].map((k) => (
+                <circle key={k} r="3.5" fill="#1C3466">
+                  <animateMotion dur="1.8s" begin={`${k * 0.6}s`} repeatCount="indefinite">
+                    <mpath href={`#fmap-${seg.id}`} />
+                  </animateMotion>
+                </circle>
+              ))}
+            </g>
+          ))}
+
+          {/* chips (com contagem real; apagados quando sem volume) */}
+          {layout.chips.map((c, i) => (
+            <g key={`chip-${i}`}>
+              <rect
+                x={CHIP_X}
+                y={c.y - CHIP_H / 2}
+                width={CHIP_W}
+                height={CHIP_H}
+                rx="7"
+                fill="#fff"
+                stroke={c.color}
+                strokeOpacity={c.total > 0 ? 0.7 : 0.3}
+                strokeWidth="1.5"
+              />
+              <circle
+                cx={CHIP_X + 14}
+                cy={c.y}
+                r="3.5"
+                fill={c.color}
+                opacity={c.total > 0 ? 1 : 0.4}
+              />
+              <text
+                x={CHIP_X + 26}
+                y={c.y + 4}
+                fontSize="12"
+                fill={c.total > 0 ? '#141A26' : '#9a9da3'}
+              >
+                {c.label}
+              </text>
+              {c.total > 0 ? (
+                <text
+                  x={CHIP_X + CHIP_W - 8}
+                  y={c.y + 4}
+                  textAnchor="end"
+                  fontSize="11"
+                  fontWeight="700"
+                  fill={c.color}
+                >
+                  {c.total}
+                </text>
+              ) : null}
+            </g>
+          ))}
+
+          {/* SDR / IA */}
+          <g>
+            <rect
+              x={SDR_X}
+              y={midY - SDR_H / 2}
+              width={SDR_W}
+              height={SDR_H}
+              rx="14"
+              fill="#E9EDF7"
+              stroke="#1C3466"
+              strokeWidth="2"
+            />
+            <rect x={SDR_X + 16} y={midY - 26} width="64" height="18" rx="9" fill="#C9A04A" />
+            <text
+              x={SDR_X + 48}
+              y={midY - 13}
+              textAnchor="middle"
+              fontSize="10"
+              fontWeight="700"
+              fill="#fff"
+            >
+              SDR · IA
+            </text>
+            <text
+              x={SDR_X + SDR_W / 2}
+              y={midY + 8}
+              textAnchor="middle"
+              fontSize="14"
+              fontWeight="700"
+              fill="#1C3466"
+            >
+              Qualificação
+            </text>
+            <text
+              x={SDR_X + SDR_W / 2}
+              y={midY + 26}
+              textAnchor="middle"
+              fontSize="11"
+              fill="#4A5570"
+            >
+              triagem automática
+            </text>
+          </g>
+
+          {/* CRM · Funil (dados reais) */}
+          {(() => {
+            const rowH = 26;
+            const headH = 40;
+            const cardH = headH + CRM_STAGES.length * rowH + 16;
+            const cardY = midY - cardH / 2;
+            const barX = CRM_X + 92;
+            const barMaxW = CRM_W - 104;
+            return (
+              <g>
+                <rect
+                  x={CRM_X}
+                  y={cardY}
+                  width={CRM_W}
+                  height={cardH}
+                  rx="14"
+                  fill="#fff"
+                  stroke="#1C3466"
+                  strokeWidth="2"
+                />
+                <text x={CRM_X + 16} y={cardY + 25} fontSize="15" fontWeight="700" fill="#1C3466">
+                  CRM · Funil
+                </text>
+                {CRM_STAGES.map((s, i) => {
+                  const v = leads ? leads[s.key] : 0;
+                  const ry = cardY + headH + i * rowH;
+                  const w = Math.max(4, (barMaxW * v) / maxStage);
+                  return (
+                    <g key={s.key}>
+                      <text x={CRM_X + 16} y={ry + 13} fontSize="11" fill="#4A5570">
+                        {s.label}
+                      </text>
+                      <rect x={barX} y={ry + 4} width={barMaxW} height="10" rx="5" fill="#F1EFEA" />
+                      <rect x={barX} y={ry + 4} width={w} height="10" rx="5" fill={s.color} />
+                      <text
+                        x={CRM_X + CRM_W - 12}
+                        y={ry + 13}
+                        textAnchor="end"
+                        fontSize="11"
+                        fontWeight="600"
+                        fill="#141A26"
+                      >
+                        {v}
+                      </text>
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          })()}
+
+          {/* Matrícula + Aluno (dados reais) */}
+          <StepNode x={ENROLL_X} y={midY} label="Matrícula" value={enrollments} accent="#345089" />
+          <StepNode x={STUDENT_X} y={midY} label="Aluno" value={students} accent="#06173F" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function StepNode({
+  x,
+  y,
+  label,
+  value,
+  accent,
+}: {
+  x: number;
+  y: number;
+  label: string;
+  value: number;
+  accent: string;
+}) {
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y - NODE_H / 2}
+        width={NODE_W}
+        height={NODE_H}
+        rx="14"
+        fill="#fff"
+        stroke={accent}
+        strokeWidth="2"
+      />
+      <text
+        x={x + NODE_W / 2}
+        y={y - 4}
+        textAnchor="middle"
+        fontSize="26"
+        fontWeight="700"
+        fill={accent}
+      >
+        {value}
+      </text>
+      <text x={x + NODE_W / 2} y={y + 20} textAnchor="middle" fontSize="12" fill="#4A5570">
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function FlowStat({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-2">
+      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+      <div>
+        <p className="font-serif text-xl font-semibold text-navy-800">{value}</p>
+        <p className="text-xs text-muted">{label}</p>
+      </div>
+    </div>
+  );
+}
