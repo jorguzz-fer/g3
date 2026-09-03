@@ -10,14 +10,14 @@ na Vethis. O Coolify cuida de domínio e TLS por aplicação (proxy próprio na
 
 ## 1. Mapa dos recursos
 
-| Recurso    | Tipo                | Dockerfile                   | Porta | Domínio                        |
-| ---------- | ------------------- | ---------------------------- | ----- | ------------------------------ |
-| `g3-db`    | Database · Postgres | —                            | 5432  | (interno)                      |
-| `g3-redis` | Database · Redis    | —                            | 6379  | (interno)                      |
-| `API-G3`   | Application         | `apps/api/Dockerfile`        | 3333  | `api.g3educacaosaude.com.br`   |
-| `g3-site`  | Application         | `apps/site/Dockerfile`       | 3000  | `g3educacaosaude.com.br`       |
-| `g3-app`   | Application         | `apps/aluno/Dockerfile`      | 80    | `app.g3educacaosaude.com.br`   |
-| `g3-admin` | Application         | `apps/backoffice/Dockerfile` | 80    | `admin.g3educacaosaude.com.br` |
+| Recurso    | Tipo                | Dockerfile                    | Porta | Domínio                        |
+| ---------- | ------------------- | ----------------------------- | ----- | ------------------------------ |
+| `g3-db`    | Database · Postgres | —                             | 5432  | (interno)                      |
+| `g3-redis` | Database · Redis    | —                             | 6379  | (interno)                      |
+| `API-G3`   | Application         | `/apps/api/Dockerfile`        | 3333  | `api.g3educacaosaude.com.br`   |
+| `g3-site`  | Application         | `/apps/site/Dockerfile`       | 3000  | `g3educacaosaude.com.br`       |
+| `g3-app`   | Application         | `/apps/aluno/Dockerfile`      | 80    | `app.g3educacaosaude.com.br`   |
+| `g3-admin` | Application         | `/apps/backoffice/Dockerfile` | 80    | `admin.g3educacaosaude.com.br` |
 
 Ordem de criação: **bancos primeiro** (as aplicações precisam das URLs internas
 deles), depois a API, depois os três fronts.
@@ -56,6 +56,18 @@ Repository** (ou Private with GitHub App, que dá auto-deploy no push):
 > **Base Directory tem de ser `/`.** Os Dockerfiles são multi-stage e copiam o
 > `pnpm-lock.yaml` e o workspace inteiro a partir da raiz do monorepo. Apontar o
 > contexto para `apps/api` quebra o build.
+
+> **Dockerfile Location precisa da barra inicial** e do caminho completo, como
+> na tabela do §1 — o campo é relativo à Base Directory e vem preenchido com
+> `/Dockerfile` por padrão. Não existe `Dockerfile` na raiz deste repo: deixar o
+> valor padrão falha com
+> `failed to read dockerfile: open Dockerfile: no such file or directory`.
+
+> **`NODE_ENV` não precisa estar em buildtime.** O Coolify avisa que
+> `NODE_ENV=production` no build pula as devDependencies — isso vale para
+> npm/yarn, não para o pnpm, que só pula com `--prod` explícito. O aviso é
+> inofensivo aqui; ainda assim, deixe `NODE_ENV` como runtime-only para não
+> poluir o log.
 
 ## 4. Variáveis de ambiente, por recurso
 
