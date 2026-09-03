@@ -9,7 +9,7 @@ import createClient, { type Client } from 'openapi-fetch';
 import type { paths } from './schema';
 
 export interface G3ClientConfig {
-  /** Base URL da API, ex.: https://api.g3saude.edu.br */
+  /** Base URL da API, ex.: https://api.g3educacaosaude.com.br */
   baseUrl: string;
   /** fetch customizado (SSR/testes). Padrão: fetch global. */
   fetch?: typeof globalThis.fetch;

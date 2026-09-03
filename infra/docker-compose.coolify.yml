@@ -44,7 +44,7 @@ services:
       context: ..
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
-    # Coolify atribui o domínio (ex.: api.g3saude.edu.br) a este serviço na porta 3333.
+    # Coolify atribui o domínio (ex.: api.g3educacaosaude.com.br) a este serviço na porta 3333.
     expose:
       - '3333'
     environment:
@@ -97,7 +97,7 @@ services:
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
         NEXT_PUBLIC_APP_URL: ${PUBLIC_APP_URL}
     restart: unless-stopped
-    # Domínio: g3saude.edu.br -> porta 3000.
+    # Domínio: g3educacaosaude.com.br -> porta 3000.
     expose:
       - '3000'
     environment:
@@ -113,12 +113,12 @@ services:
       context: ..
       dockerfile: apps/aluno/Dockerfile
       args:
-        # URL PÚBLICA da API — assada no bundle. Ex.: https://api.g3saude.edu.br
+        # URL PÚBLICA da API — assada no bundle. Ex.: https://api.g3educacaosaude.com.br
         VITE_API_URL: ${PUBLIC_API_URL}
         # URL do site, usada nos CTAs que levam ao catálogo.
         VITE_SITE_URL: ${APP_URL}
     restart: unless-stopped
-    # Domínio: app.g3saude.edu.br -> porta 80.
+    # Domínio: app.g3educacaosaude.com.br -> porta 80.
     expose:
       - '80'
 
@@ -129,7 +129,7 @@ services:
       args:
         VITE_API_URL: ${PUBLIC_API_URL}
     restart: unless-stopped
-    # Domínio: admin.g3saude.edu.br -> porta 80.
+    # Domínio: admin.g3educacaosaude.com.br -> porta 80.
     expose:
       - '80'
 

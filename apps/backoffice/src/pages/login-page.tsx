@@ -47,7 +47,7 @@ export function LoginPage() {
             label="E-mail"
             type="email"
             autoComplete="email"
-            placeholder="voce@g3saude.edu.br"
+            placeholder="voce@g3educacaosaude.com.br"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

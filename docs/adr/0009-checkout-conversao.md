@@ -21,7 +21,7 @@ produto: **exigir login/cadastro antes do pagamento**.
 Fluxo em **duas etapas percebidas**, tudo numa página (`/checkout/[slug]`):
 
 1. **Autenticação** — cadastro (nome, e-mail, senha) ou login, inline, sem sair
-   da página. Cria a sessão (cookie httpOnly compartilhado em `.g3saude.edu.br`).
+   da página. Cria a sessão (cookie httpOnly compartilhado em `.g3educacaosaude.com.br`).
 2. **Pagamento** — Pix (padrão), cartão parcelado (até 12x) ou boleto. Pix/boleto
    ficam `pending` e o front faz _polling_ do pedido; cartão autoriza na hora.
 

@@ -10,14 +10,14 @@ na Vethis. O Coolify cuida de domínio e TLS por aplicação (proxy próprio na
 
 ## 1. Mapa dos recursos
 
-| Recurso    | Tipo                | Dockerfile                   | Porta | Domínio                |
-| ---------- | ------------------- | ---------------------------- | ----- | ---------------------- |
-| `g3-db`    | Database · Postgres | —                            | 5432  | (interno)              |
-| `g3-redis` | Database · Redis    | —                            | 6379  | (interno)              |
-| `API-G3`   | Application         | `apps/api/Dockerfile`        | 3333  | `api.g3saude.edu.br`   |
-| `g3-site`  | Application         | `apps/site/Dockerfile`       | 3000  | `g3saude.edu.br`       |
-| `g3-app`   | Application         | `apps/aluno/Dockerfile`      | 80    | `app.g3saude.edu.br`   |
-| `g3-admin` | Application         | `apps/backoffice/Dockerfile` | 80    | `admin.g3saude.edu.br` |
+| Recurso    | Tipo                | Dockerfile                   | Porta | Domínio                        |
+| ---------- | ------------------- | ---------------------------- | ----- | ------------------------------ |
+| `g3-db`    | Database · Postgres | —                            | 5432  | (interno)                      |
+| `g3-redis` | Database · Redis    | —                            | 6379  | (interno)                      |
+| `API-G3`   | Application         | `apps/api/Dockerfile`        | 3333  | `api.g3educacaosaude.com.br`   |
+| `g3-site`  | Application         | `apps/site/Dockerfile`       | 3000  | `g3educacaosaude.com.br`       |
+| `g3-app`   | Application         | `apps/aluno/Dockerfile`      | 80    | `app.g3educacaosaude.com.br`   |
+| `g3-admin` | Application         | `apps/backoffice/Dockerfile` | 80    | `admin.g3educacaosaude.com.br` |
 
 Ordem de criação: **bancos primeiro** (as aplicações precisam das URLs internas
 deles), depois a API, depois os três fronts.
@@ -71,10 +71,10 @@ Tudo runtime — a API lê a configuração no boot e falha rápido se faltar al
 NODE_ENV=production
 API_PORT=3333
 
-APP_URL=https://g3saude.edu.br
-PUBLIC_API_URL=https://api.g3saude.edu.br
-CORS_ORIGINS=https://g3saude.edu.br,https://app.g3saude.edu.br,https://admin.g3saude.edu.br
-COOKIE_DOMAIN=.g3saude.edu.br
+APP_URL=https://g3educacaosaude.com.br
+PUBLIC_API_URL=https://api.g3educacaosaude.com.br
+CORS_ORIGINS=https://g3educacaosaude.com.br,https://app.g3educacaosaude.com.br,https://admin.g3educacaosaude.com.br
+COOKIE_DOMAIN=.g3educacaosaude.com.br
 
 DATABASE_URL=<URL interna do g3-db>
 REDIS_URL=<URL interna do g3-redis>
@@ -100,12 +100,12 @@ Opcionais, quando tiver: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
 ### g3-site
 
 ```
-🔨 NEXT_PUBLIC_API_URL=https://api.g3saude.edu.br
-🔨 NEXT_PUBLIC_APP_URL=https://app.g3saude.edu.br
+🔨 NEXT_PUBLIC_API_URL=https://api.g3educacaosaude.com.br
+🔨 NEXT_PUBLIC_APP_URL=https://app.g3educacaosaude.com.br
 
 NODE_ENV=production
 PORT=3000
-API_URL=https://api.g3saude.edu.br
+API_URL=https://api.g3educacaosaude.com.br
 ```
 
 `NEXT_PUBLIC_*` é lido pelo navegador (checkout e link "Área do aluno") e assado
@@ -115,8 +115,8 @@ pública ou o FQDN interno da API, que evita a volta pelo proxy.
 ### g3-app (área do aluno)
 
 ```
-🔨 VITE_API_URL=https://api.g3saude.edu.br
-🔨 VITE_SITE_URL=https://g3saude.edu.br
+🔨 VITE_API_URL=https://api.g3educacaosaude.com.br
+🔨 VITE_SITE_URL=https://g3educacaosaude.com.br
 ```
 
 Nenhuma variável de runtime: o build gera arquivos estáticos servidos por Caddy.
@@ -124,7 +124,7 @@ Nenhuma variável de runtime: o build gera arquivos estáticos servidos por Cadd
 ### g3-admin (backoffice)
 
 ```
-🔨 VITE_API_URL=https://api.g3saude.edu.br
+🔨 VITE_API_URL=https://api.g3educacaosaude.com.br
 ```
 
 ## 5. Deploy
@@ -132,14 +132,14 @@ Nenhuma variável de runtime: o build gera arquivos estáticos servidos por Cadd
 1. Suba `g3-db` e `g3-redis` e confirme que ficaram _healthy_.
 2. **Deploy da `API-G3`.** O entrypoint aplica as migrations sozinho a cada
    deploy e, com `SEED_ON_START=true`, roda o seed. Não há passo manual.
-3. Confira: `https://api.g3saude.edu.br/v1/health` →
+3. Confira: `https://api.g3educacaosaude.com.br/v1/health` →
    `{"status":"ok","db":"up","redis":"up"}`.
 4. Deploy de `g3-site`, `g3-app` e `g3-admin` (podem ir em paralelo).
 5. Volte `SEED_ON_START` para `false` na API.
 
 ## 6. Depois de subir
 
-- **Restrinja o `admin.g3saude.edu.br`** por IP allow-list ou VPN. O MFA ainda
+- **Restrinja o `admin.g3educacaosaude.com.br`** por IP allow-list ou VPN. O MFA ainda
   não existe (ver ADR 0006) — hoje o backoffice depende só de senha.
 - Troque a senha do usuário `staff` criado pelo seed.
 - Confirme que `g3-db` e `g3-redis` continuam sem domínio público.

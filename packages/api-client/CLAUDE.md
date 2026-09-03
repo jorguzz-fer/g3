@@ -19,7 +19,7 @@ pnpm --filter @g3/api-client generate
 ```ts
 import { createG3Client } from '@g3/api-client';
 
-const api = createG3Client({ baseUrl: 'https://api.g3saude.edu.br' });
+const api = createG3Client({ baseUrl: 'https://api.g3educacaosaude.com.br' });
 const { data, error } = await api.GET('/v1/catalog/courses', {
   params: { query: { specialty: 'cardiologia' } },
 });

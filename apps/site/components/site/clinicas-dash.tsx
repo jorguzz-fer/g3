@@ -16,7 +16,7 @@ export function ClinicasDash() {
             <i style={{ background: '#e56a5a' }} />
             <i style={{ background: '#e5b54e' }} />
             <i style={{ background: '#5fc08a' }} />
-            <span className="u">app.g3saude.edu.br/painel/instituicao</span>
+            <span className="u">app.g3educacaosaude.com.br/painel/instituicao</span>
           </div>
           <div className="b-body">
             <aside className="side">

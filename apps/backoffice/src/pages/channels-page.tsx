@@ -338,7 +338,7 @@ function ChannelModal({
 // ---------------------------------------------------------------------------
 
 function UtmBuilder() {
-  const [base, setBase] = useState('https://g3saude.edu.br');
+  const [base, setBase] = useState('https://g3educacaosaude.com.br');
   const [source, setSource] = useState('');
   const [medium, setMedium] = useState('');
   const [campaign, setCampaign] = useState('');

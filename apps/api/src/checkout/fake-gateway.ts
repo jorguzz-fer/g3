@@ -40,7 +40,7 @@ export class FakePaymentGateway implements PaymentGateway {
     return {
       providerChargeId,
       status: 'pending',
-      boletoUrl: `https://sandbox.pay.g3saude.dev/boleto/${providerChargeId}`,
+      boletoUrl: `https://sandbox.pay.g3educacaosaude.dev/boleto/${providerChargeId}`,
     };
   }
 }

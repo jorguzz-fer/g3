@@ -830,19 +830,19 @@ async function main(): Promise<void> {
   const passwordHash = await hash('aluno12345');
   const [student] = await db
     .insert(users)
-    .values({ email: 'aluno@g3saude.dev', passwordHash, name: 'Aluno Demo', role: 'aluno' })
+    .values({ email: 'aluno@g3educacaosaude.dev', passwordHash, name: 'Aluno Demo', role: 'aluno' })
     .onConflictDoNothing({ target: users.email })
     .returning();
 
   const studentRow =
     student ??
-    (await db.select().from(users).where(eq(users.email, 'aluno@g3saude.dev')).limit(1))[0];
+    (await db.select().from(users).where(eq(users.email, 'aluno@g3educacaosaude.dev')).limit(1))[0];
   if (studentRow && firstCourse) {
     await db
       .insert(enrollments)
       .values({ userId: studentRow.id, courseId: firstCourse.id, status: 'active' })
       .onConflictDoNothing({ target: [enrollments.userId, enrollments.courseId] });
-    console.log('Aluno demo: aluno@g3saude.dev / aluno12345 (matriculado).');
+    console.log('Aluno demo: aluno@g3educacaosaude.dev / aluno12345 (matriculado).');
   }
 
   // Usuário staff para o backoffice.
@@ -850,13 +850,13 @@ async function main(): Promise<void> {
   await db
     .insert(users)
     .values({
-      email: 'staff@g3saude.dev',
+      email: 'staff@g3educacaosaude.dev',
       passwordHash: staffHash,
       name: 'Equipe G3',
       role: 'staff',
     })
     .onConflictDoNothing({ target: users.email });
-  console.log('Staff demo: staff@g3saude.dev / staff12345.');
+  console.log('Staff demo: staff@g3educacaosaude.dev / staff12345.');
 
   // Leads de exemplo para o CRM.
   await db

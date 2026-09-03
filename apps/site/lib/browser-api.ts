@@ -7,7 +7,7 @@ export type PaymentMethod = 'pix' | 'card' | 'boleto';
 /**
  * Cliente da API para o navegador (checkout). Usa a URL pública da API e envia
  * o cookie de sessão (credentials:'include'). O cookie é first-party no domínio
- * `.g3saude.edu.br`, compartilhado entre site, área do aluno e API.
+ * `.g3educacaosaude.com.br`, compartilhado entre site, área do aluno e API.
  */
 const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3333';
 

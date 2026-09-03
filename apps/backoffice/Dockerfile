@@ -1,5 +1,5 @@
 # Backoffice (SPA estática servida por Caddy). Build da RAIZ do monorepo:
-#   docker build -f apps/backoffice/Dockerfile --build-arg VITE_API_URL=https://api.g3saude.edu.br -t g3-backoffice .
+#   docker build -f apps/backoffice/Dockerfile --build-arg VITE_API_URL=https://api.g3educacaosaude.com.br -t g3-backoffice .
 
 FROM node:22-alpine AS builder
 RUN corepack enable

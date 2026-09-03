@@ -18,8 +18,8 @@ Postgres, Redis e apps ficam na rede privada do Compose.
 **VPS sugerida para começar:** 2 vCPU · 4 GB RAM · 40 GB SSD. Firewall liberando
 apenas 80, 443 e 22 (SSH restrito).
 
-**DNS (A records → IP da VPS):** `g3saude.edu.br`, `www`, `app.g3saude.edu.br`,
-`admin.g3saude.edu.br`, `api.g3saude.edu.br`.
+**DNS (A records → IP da VPS):** `g3educacaosaude.com.br`, `www`, `app.g3educacaosaude.com.br`,
+`admin.g3educacaosaude.com.br`, `api.g3educacaosaude.com.br`.
 
 ## Variáveis de ambiente
 
@@ -31,7 +31,7 @@ Pontos de atenção:
 - `DATABASE_URL` usa o host **`postgres`** (nome do serviço), não `localhost`.
 - `REDIS_URL` usa o host **`redis`**.
 - `PUBLIC_API_URL` é **assado no build** do aluno/backoffice (rebuild ao mudar).
-- `COOKIE_DOMAIN=.g3saude.edu.br` compartilha a sessão entre subdomínios.
+- `COOKIE_DOMAIN=.g3educacaosaude.com.br` compartilha a sessão entre subdomínios.
 - `CORS_ORIGINS` deve listar os 3 domínios de frontend.
 
 ## Passo a passo
@@ -46,7 +46,7 @@ cp .env.production.example .env
 nano .env            # preencher senhas, SESSION_SECRET, domínios
 
 # 3) ajustar domínios no ingress
-nano infra/Caddyfile # trocar g3saude.edu.br pelos seus domínios
+nano infra/Caddyfile # trocar g3educacaosaude.com.br pelos seus domínios
 
 # 4) build + subir tudo
 docker compose --env-file .env -f infra/docker-compose.prod.yml up -d --build
@@ -60,7 +60,7 @@ docker compose --env-file .env -f infra/docker-compose.prod.yml \
   run --rm api node dist/db/seed.js
 ```
 
-Healthcheck: `curl https://api.g3saude.edu.br/v1/health` → `{"status":"ok","db":"up","redis":"up"}`.
+Healthcheck: `curl https://api.g3educacaosaude.com.br/v1/health` → `{"status":"ok","db":"up","redis":"up"}`.
 
 ## Operação
 
@@ -76,6 +76,6 @@ docker compose -f infra/docker-compose.prod.yml exec postgres \
   pg_dump -U g3 g3 > backup_$(date +%F).sql
 ```
 
-> Segurança: mantenha `admin.g3saude.edu.br` atrás de IP allow-list/VPN; configure
+> Segurança: mantenha `admin.g3educacaosaude.com.br` atrás de IP allow-list/VPN; configure
 > backups automáticos off-site do volume `pgdata`; rotacione `SESSION_SECRET` só
 > com plano de invalidar sessões. MFA/OIDC entram no hardening de auth.

@@ -77,7 +77,7 @@ export function LoginPage() {
           <p className="mt-8 text-center text-xs text-muted">
             Ao entrar você concorda com a{' '}
             <a
-              href="https://g3saude.edu.br/privacidade"
+              href="https://g3educacaosaude.com.br/privacidade"
               className="font-medium text-navy-700 underline underline-offset-2 hover:text-navy-800"
             >
               Política de Privacidade
