@@ -5,6 +5,13 @@ FROM node:22-alpine AS builder
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable
 WORKDIR /repo
+# URLs públicas usadas pelo bundle do navegador (checkout, link da área do
+# aluno). NEXT_PUBLIC_* é assado em `next build` — precisa existir AQUI, não no
+# runtime. Trocar o valor exige rebuild.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 # Baixa as dependências a partir do lockfile (camada cacheada por hash do
 # lockfile — só refaz o download quando as deps mudam, não a cada mudança de
 # código). Reduz tempo/memória do build e evita re-baixar 745 pacotes por deploy.

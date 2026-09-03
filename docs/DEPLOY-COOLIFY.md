@@ -8,50 +8,56 @@ Por isso **não usamos o nosso `caddy`** — use o compose específico
 
 1. **+ New → Application → Git Based → Private Repository (with GitHub App)**
    (ou _Public Repository_ se o repo for público). O GitHub App dá **auto-deploy no push**.
-2. Selecione o repositório `jorguzz-fer/g3-plataform` e a branch `main`.
+2. Selecione o repositório `jorguzz-fer/g3` e a branch `main`.
 3. **Build Pack: Docker Compose**.
 4. **Docker Compose Location:** `infra/docker-compose.coolify.yml`.
    (Base Directory `/` — a raiz do repo.)
 
 ## 2. Variáveis de ambiente
 
-Na aba **Environment Variables**, cole (ajustando valores e domínios):
+Na aba **Environment Variables**, cole (ajustando valores e domínios). O compose
+já repassa cada uma para o serviço certo — não é preciso configurar por serviço:
 
 ```
+# ── Domínios (a base de tudo) ────────────────────────────────
 APP_URL=https://g3saude.edu.br
 PUBLIC_API_URL=https://api.g3saude.edu.br
-# Aluno (Vite) — build args: URL da API e do site (CTA "explorar cursos").
-VITE_API_URL=https://api.g3saude.edu.br
-VITE_SITE_URL=https://g3saude.edu.br
-# Site (Next.js) — checkout no navegador. NEXT_PUBLIC_* é assado em `next build`.
-NEXT_PUBLIC_API_URL=https://api.g3saude.edu.br
-NEXT_PUBLIC_APP_URL=https://app.g3saude.edu.br
+PUBLIC_APP_URL=https://app.g3saude.edu.br
 CORS_ORIGINS=https://g3saude.edu.br,https://app.g3saude.edu.br,https://admin.g3saude.edu.br
+COOKIE_DOMAIN=.g3saude.edu.br
 
+# ── Banco e cache (hosts são os nomes dos serviços do compose) ─
 POSTGRES_USER=g3
 POSTGRES_PASSWORD=<senha forte>
 POSTGRES_DB=g3
 DATABASE_URL=postgresql://g3:<senha forte>@postgres:5432/g3
-
 REDIS_URL=redis://redis:6379
 
+# ── Sessão ───────────────────────────────────────────────────
 SESSION_SECRET=<openssl rand -hex 32>
-COOKIE_DOMAIN=.g3saude.edu.br
+
+# ── Uploads (capas enviadas pelo admin) ──────────────────────
+UPLOADS_DIR=/data/uploads
+
+# ── Primeiro deploy: publica o catálogo ──────────────────────
+SEED_ON_START=true
 ```
 
-Opcionais (checkout/hardening), quando tiver: `GOOGLE_*`, `ASAAS_*`, `VIMEO_ACCESS_TOKEN`, `SENTRY_DSN`.
+`PUBLIC_API_URL`, `PUBLIC_APP_URL` e `APP_URL` são **build args**: viram
+`NEXT_PUBLIC_*` no bundle do site e `VITE_*` no do aluno/backoffice. Marque as
+três como disponíveis em **build time** no Coolify (a UI tem essa opção por
+variável) e faça **rebuild** ao alterá-las — mudar só o runtime não tem efeito.
 
-> **Upload de imagens no admin (capas):** a API grava os arquivos enviados em
-> `UPLOADS_DIR` e os serve em `/uploads`. Como o disco do container é efêmero,
-> configure na **API-G3**:
->
-> ```
-> PUBLIC_API_URL=https://api.g3saude.edu.br   # URL pública da API (monta a URL do arquivo)
-> UPLOADS_DIR=/data/uploads                  # pasta gravável (aponte um volume persistente)
-> ```
->
-> E adicione um **Persistent Storage** na API-G3 montado em `/data/uploads`
-> (Coolify → aba Storages). Sem o volume, as imagens somem no próximo deploy.
+Opcionais, quando tiver: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` /
+`GOOGLE_CALLBACK_URL` (login social), `PAYMENT_GATEWAY=asaas` + `ASAAS_API_KEY` /
+`ASAAS_BASE_URL` / `ASAAS_WEBHOOK_TOKEN` (cobrança real), `VIMEO_ACCESS_TOKEN`
+(vídeo), `ANTHROPIC_API_KEY` (botão "Gerar com IA" no admin) e `SENTRY_DSN`.
+
+> **Upload de imagens no admin (capas):** a API grava em `UPLOADS_DIR` e serve
+> em `/uploads`. O compose já declara o volume `uploads` montado nesse caminho.
+> Se preferir um disco seu, adicione um **Persistent Storage** na API montado em
+> `/data/uploads` (Coolify → aba Storages). Sem volume, as capas somem no
+> próximo deploy — o disco do container é efêmero.
 
 > **Publicar o catálogo (primeiro deploy):** defina `SEED_ON_START=true`. O
 > entrypoint da API roda o seed idempotente (cria/atualiza o curso). As

@@ -55,6 +55,11 @@ services:
       # chega ao container e o seed não roda (banco fica sem cursos → site vazio).
       SEED_ON_START: ${SEED_ON_START:-false}
       APP_URL: ${APP_URL}
+      # URL pública da própria API: monta a URL dos arquivos enviados no admin.
+      PUBLIC_API_URL: ${PUBLIC_API_URL}
+      # Pasta dos uploads — aponte um Persistent Storage do Coolify para cá,
+      # senão as capas somem no próximo deploy (disco do container é efêmero).
+      UPLOADS_DIR: ${UPLOADS_DIR:-/data/uploads}
       CORS_ORIGINS: ${CORS_ORIGINS}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
@@ -65,10 +70,16 @@ services:
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-}
       PAYMENT_GATEWAY: ${PAYMENT_GATEWAY:-fake}
       ASAAS_API_KEY: ${ASAAS_API_KEY:-}
-      ASAAS_WEBHOOK_SECRET: ${ASAAS_WEBHOOK_SECRET:-}
+      # Nome conforme o schema de config da API (config/configuration.ts).
+      ASAAS_WEBHOOK_TOKEN: ${ASAAS_WEBHOOK_TOKEN:-}
       ASAAS_BASE_URL: ${ASAAS_BASE_URL:-}
       VIMEO_ACCESS_TOKEN: ${VIMEO_ACCESS_TOKEN:-}
+      # IA opcional no backoffice ("Gerar com IA"): sem a chave, fica desativada.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-claude-opus-4-8}
       SENTRY_DSN: ${SENTRY_DSN:-}
+    volumes:
+      - uploads:${UPLOADS_DIR:-/data/uploads}
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,6 +90,12 @@ services:
     build:
       context: ..
       dockerfile: apps/site/Dockerfile
+      args:
+        # URLs PÚBLICAS assadas no bundle do navegador em `next build`
+        # (checkout e link "Área do aluno"). Sem elas o bundle cai no default
+        # de dev (localhost) e o checkout quebra em produção.
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
+        NEXT_PUBLIC_APP_URL: ${PUBLIC_APP_URL}
     restart: unless-stopped
     # Domínio: g3saude.edu.br -> porta 3000.
     expose:
@@ -98,6 +115,8 @@ services:
       args:
         # URL PÚBLICA da API — assada no bundle. Ex.: https://api.g3saude.edu.br
         VITE_API_URL: ${PUBLIC_API_URL}
+        # URL do site, usada nos CTAs que levam ao catálogo.
+        VITE_SITE_URL: ${APP_URL}
     restart: unless-stopped
     # Domínio: app.g3saude.edu.br -> porta 80.
     expose:
@@ -117,3 +136,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  uploads:
