@@ -26,7 +26,7 @@ const sans = Josefin_Sans({
 export const metadata: Metadata = {
   title: 'G3 Educação | Saúde — Pós-graduação na área da saúde',
   description:
-    'Pós-graduação, graduação e extensão para quem cuida de gente. Formação conduzida por quem vive a rotina de clínicas, hospitais e consultórios.',
+    'Graduação, pós-graduação e cursos livres para quem cuida de gente. Formação conduzida por quem vive a rotina de clínicas, hospitais e consultórios.',
   icons: { icon: '/g3-mark.png' },
 };
 

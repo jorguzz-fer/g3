@@ -6,8 +6,8 @@
 ## O que é
 
 Plataforma **G3 Educação | Saúde** — instituição de ensino superior dedicada
-exclusivamente à formação de profissionais da saúde (pós-graduação, graduação e
-extensão). Três ambientes:
+exclusivamente à formação de profissionais da saúde (graduação, pós-graduação e
+cursos livres). Três ambientes:
 
 1. **Site/Ecommerce** (`apps/site`) — público, SEO, vende cursos.
 2. **Área do Aluno** (`apps/aluno`) — cursos, player, progresso, secretaria online. PWA (base do Capacitor para iOS/Android).

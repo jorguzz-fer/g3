@@ -12,7 +12,7 @@ export function Hero() {
             em torno da <em>saúde</em>.
           </h1>
           <p className="hero-sub">
-            Pós-graduação, graduação e extensão desenhadas por quem vive a rotina de clínicas,
+            Graduação, pós-graduação e cursos livres desenhados por quem vive a rotina de clínicas,
             hospitais e consultórios. Estude no seu ritmo, com casos reais e certificação.
           </p>
           <div className="hero-cta">

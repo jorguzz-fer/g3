@@ -1,8 +1,8 @@
 # G3 Educação | Saúde — Plataforma
 
 Monorepo da plataforma **G3 Educação | Saúde**, instituição de ensino superior
-dedicada exclusivamente à formação de profissionais da saúde: pós-graduação,
-graduação e extensão. Três ambientes sobre uma única API:
+dedicada exclusivamente à formação de profissionais da saúde: graduação,
+pós-graduação e cursos livres. Três ambientes sobre uma única API:
 
 - **Site/Ecommerce** (`apps/site`) — catálogo e venda de cursos (Next.js, SEO).
 - **Área do Aluno** (`apps/aluno`) — cursos, player, progresso e secretaria online (React+Vite PWA; base do app iOS/Android via Capacitor).
