@@ -104,6 +104,13 @@ container é efêmero.
 `false`: o seed é idempotente, mas ele é a fonte de verdade do catálogo e faz
 soft-delete de cursos criados fora dele.
 
+**Canais de aquisição do CRM (`/canais` no admin) vazios?** Não reative
+`SEED_ON_START` só por causa disso — ele poda cursos publicados fora do seed.
+Rode, uma vez, só o seed de canais (idempotente, não toca em cursos): abra o
+Terminal da `API-G3` no Coolify e execute `node dist/db/seed-channels.js`
+(cwd já é `/repo/apps/api`). Publica os mesmos 13 canais padrão da Vethis
+(Google Ads, Meta Ads, TikTok Ads, LinkedIn, Instagram etc.), com as cores G3.
+
 Opcionais, quando tiver: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
 `GOOGLE_CALLBACK_URL`, `PAYMENT_GATEWAY=asaas` + `ASAAS_API_KEY` /
 `ASAAS_BASE_URL` / `ASAAS_WEBHOOK_TOKEN`, `VIMEO_ACCESS_TOKEN`,
