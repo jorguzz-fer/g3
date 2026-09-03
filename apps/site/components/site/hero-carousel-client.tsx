@@ -6,6 +6,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
 } from 'react';
@@ -29,6 +30,31 @@ export interface CarouselImageSlide {
 }
 
 const AUTOPLAY_MS = 6000;
+
+/**
+ * Acima de 960px o herói é de duas colunas e a arte dos slides renderiza perto
+ * de 1:1 — o texto e os botões desenhados batem com os do slide do app. Abaixo
+ * disso a arte encolhe junto com a tela (num viewport de 420px o título efetivo
+ * cai para ~14px e o botão para ~10px, intocável), então o carrossel mostra só
+ * o slide do app, que é HTML e reflui. 960px é o mesmo ponto em que o
+ * `.hero-in` do prototype.css passa a uma coluna.
+ */
+const WIDE_QUERY = '(min-width: 960px)';
+
+function subscribeToWide(onChange: () => void): () => void {
+  const mq = window.matchMedia(WIDE_QUERY);
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+}
+
+/** `true` quando há largura para os slides em imagem. SSR assume que sim. */
+function useIsWide(): boolean {
+  return useSyncExternalStore(
+    subscribeToWide,
+    () => window.matchMedia(WIDE_QUERY).matches,
+    () => true,
+  );
+}
 
 function ImageSlide({ slide }: { slide: CarouselImageSlide }) {
   return (
@@ -55,19 +81,23 @@ function ImageSlide({ slide }: { slide: CarouselImageSlide }) {
  * no hover/foco, setas, bolinhas, swipe e respeito a prefers-reduced-motion.
  */
 export function HeroCarouselClient({ imageSlides }: { imageSlides: CarouselImageSlide[] }) {
+  const isWide = useIsWide();
   const slides: Array<{ alt: string; content: ReactNode }> = [
-    ...imageSlides.map((s) => ({ alt: s.alt, content: <ImageSlide slide={s} /> })),
+    ...(isWide ? imageSlides.map((s) => ({ alt: s.alt, content: <ImageSlide slide={s} /> })) : []),
     { alt: 'Formação contínua para profissionais da saúde', content: <Hero /> },
   ];
   const count = slides.length;
 
   const [active, setActive] = useState(0);
+  // Normaliza aqui em vez de num efeito: ao estreitar a janela o número de
+  // slides cai e o índice guardado pode ficar fora da faixa.
+  const index = ((active % count) + count) % count;
   const [paused, setPaused] = useState(false);
   const touchX = useRef<number | null>(null);
 
   const go = useCallback((i: number) => setActive(((i % count) + count) % count), [count]);
-  const next = useCallback(() => go(active + 1), [active, go]);
-  const prev = useCallback(() => go(active - 1), [active, go]);
+  const next = useCallback(() => go(index + 1), [index, go]);
+  const prev = useCallback(() => go(index - 1), [index, go]);
 
   // Autoplay: pausa no hover/foco e respeita quem prefere menos movimento.
   useEffect(() => {
@@ -110,7 +140,7 @@ export function HeroCarouselClient({ imageSlides }: { imageSlides: CarouselImage
     >
       <div className="hc-viewport">
         {slides.map((slide, i) => {
-          const isActive = i === active;
+          const isActive = i === index;
           return (
             <div
               key={i}
@@ -170,7 +200,7 @@ export function HeroCarouselClient({ imageSlides }: { imageSlides: CarouselImage
                 key={i}
                 type="button"
                 role="tab"
-                aria-selected={i === active}
+                aria-selected={i === index}
                 aria-label={`Ir para o slide ${i + 1}`}
                 className={`hc-dot${i === active ? ' is-active' : ''}`}
                 onClick={() => go(i)}
